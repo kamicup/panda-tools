@@ -1,0 +1,41 @@
+{
+  "name": "panda-tools",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "watch": "nodemon -e ts --watch 'src/**/*.ts' --exec 'npm run build'",
+    "build": "webpack --mode production --config webpack.config.ts",
+    "postbuild": "PATH=$PATH:~/venv/bin sam build",
+    "mp4": "convert -size 2x2 xc:red _2x2.png && ffmpeg -loop 1 -i _2x2.png -c:v libx264 -t 1 -pix_fmt yuv420p _2x2.mp4 && base64 -i _2x2.mp4",
+    "postmp4": "rm _2x2.png && rm _2x2.mp4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@gitlab.com/kamicup/panda-tools.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": ""
+  },
+  "homepage": "",
+  "devDependencies": {
+    "@aws-sdk/client-dynamodb": "^3.398.0",
+    "@aws-sdk/lib-dynamodb": "^3.398.0",
+    "@types/aws-lambda": "^8.10.97",
+    "@types/webpack": "^5.28.0",
+    "nodemon": "^2.0.16",
+    "terser-webpack-plugin": "^5.3.7",
+    "ts-loader": "^9.3.0",
+    "ts-node": "^10.7.0",
+    "typescript": "^4.6.4",
+    "webpack": "^5.72.1",
+    "webpack-cli": "^4.9.2",
+    "webpack-node-externals": "^3.0.0"
+  }
+}

@@ -1,0 +1,55 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  SAM Template for panda-tools
+
+Parameters:
+  DdbRegion:
+    Type: String
+    Default: ap-northeast-1
+  DdbTable:
+    Type: String
+    Default: PandaTools
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Runtime: nodejs16.x
+    Handler: index.handler
+    Timeout: 10
+    Architectures:
+      - arm64
+    Environment:
+      Variables:
+        DDB_REGION: !Ref DdbRegion
+        DDB_TABLE: !Ref DdbTable
+
+Resources:
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+  TrackFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: dist/track/
+      Events:
+        Track:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Method: GET
+            Path: /track
+  DynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref DdbTable
+      KeySchema:
+        - AttributeName: PartitionKey
+          KeyType: HASH
+        - AttributeName: SortKey
+          KeyType: RANGE
+      AttributeDefinitions:
+        - AttributeName: PartitionKey
+          AttributeType: S
+        - AttributeName: SortKey
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
