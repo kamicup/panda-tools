@@ -24,11 +24,14 @@ jobs:
         env:
           DDB_REGION: ${{ secrets.DDB_REGION }}
           DDB_TABLE: ${{ secrets.DDB_TABLE }}
+          SALT: ${{ secrets.SALT }}
+          CIPHER_KEY: ${{ secrets.CIPHER_KEY }}
+          CIPHER_IV: ${{ secrets.CIPHER_IV }}
         run: >
           sam deploy --no-confirm-changeset --no-fail-on-empty-changeset
           --parameter-overrides
           DdbRegion=$DDB_REGION
           DdbTable=$DDB_TABLE
-          Salt="$SALT"
-          CipherKey="$CIPHER_KEY"
-          CipherIv="$CIPHER_IV"
+          Salt=$SALT
+          CipherKey=$CIPHER_KEY
+          CipherIv=$CIPHER_IV
