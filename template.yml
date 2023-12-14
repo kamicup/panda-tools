@@ -23,6 +23,7 @@ Globals:
       Variables:
         DDB_REGION: !Ref DdbRegion
         DDB_TABLE: !Ref DdbTable
+        DEBUG: "1"
 
 Resources:
   HttpApi:
