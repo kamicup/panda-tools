@@ -25,18 +25,30 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
         const input : QueryCommandInput = {
             TableName: tableName,
             KeyConditionExpression: "PartitionKey = :wid",
-            ExpressionAttributeValues: {
-                ":wid": {S: wid},
+            ExpressionAttributeNames: {},
+            ExpressionAttributeValues: {":wid": {S: wid}}
+        }
+        const filters: string[] = []
+        if (sensor && sensor.length) {
+            filters.push("#sensor = :sensor")
+            input.ExpressionAttributeNames!["#sensor"] = "Sensor"
+            input.ExpressionAttributeValues![":sensor"] = {S: sensor}
+        }
+        if (sourceIp && sourceIp.length) {
+            try {
+                const decrypted = decrypt(sourceIp)
+                filters.push("#sourceIp = :sourceIp")
+                input.ExpressionAttributeNames!["#sourceIp"] = "SourceIp"
+                input.ExpressionAttributeValues![":sourceIp"] = {S: decrypted}
+            } catch (e) {
+                return {
+                    statusCode: 400,
+                    body: 'invalid sourceIp',
+                }
             }
         }
-        if (sensor && sensor.length) {
-            input.FilterExpression = "#sensor = :sensor"
-            input.ExpressionAttributeNames = {"#sensor": "Sensor"}
-            input.ExpressionAttributeValues![":sensor"] = {S: sensor}
-        } else if (sourceIp && sourceIp.length) {
-            input.FilterExpression = "#sourceIp = :sourceIp"
-            input.ExpressionAttributeNames = {"#sourceIp": "SourceIp"}
-            input.ExpressionAttributeValues![":sourceIp"] = {S: decrypt(sourceIp)}
+        if (filters.length) {
+            input.FilterExpression = filters.join(' and ')
         }
 
         const client = new DynamoDBClient({
@@ -70,7 +82,7 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
 
     return {
         statusCode: 400,
-        body: "missing wid"
+        body: 'missing wid'
     }
 }
 
