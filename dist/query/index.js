@@ -22793,7 +22793,7 @@ module.exports = toNumber
 
 /***/ }),
 
-/***/ 78:
+/***/ 326:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -22844,76 +22844,58 @@ var debug = process.env.DEBUG === '1';
 function handler(event, context, callback) {
     var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function () {
-        var time, timeEpoch, sourceIp, userAgent, wid, sensor, direct, client, item, putItemOutput;
+        var wid, sensor, sourceIp, input, client, queryCommandOutput;
         return __generator(this, function (_d) {
             switch (_d.label) {
                 case 0:
                     if (debug) {
                         console.info('event:', event);
                     }
-                    time = event.requestContext.time;
-                    timeEpoch = event.requestContext.timeEpoch;
-                    sourceIp = event.requestContext.http.sourceIp;
-                    userAgent = event.requestContext.http.userAgent;
                     wid = (_a = event.queryStringParameters) === null || _a === void 0 ? void 0 : _a.wid;
                     sensor = (_b = event.queryStringParameters) === null || _b === void 0 ? void 0 : _b.sensor;
-                    direct = (_c = event.queryStringParameters) === null || _c === void 0 ? void 0 : _c.direct;
+                    sourceIp = (_c = event.queryStringParameters) === null || _c === void 0 ? void 0 : _c.sourceIp;
                     if (!wid) return [3 /*break*/, 2];
+                    input = {
+                        TableName: tableName,
+                        KeyConditionExpression: "PartitionKey = :wid",
+                        ExpressionAttributeValues: {
+                            ":wid": { S: wid },
+                        }
+                    };
+                    if (sensor && sensor.length) {
+                        input.FilterExpression = "Sensor = :sensor";
+                        input.ExpressionAttributeValues[":sensor"] = { S: sensor };
+                    }
+                    else if (sourceIp && sourceIp.length) {
+                        input.FilterExpression = "SourceIp = :sourceIp";
+                        input.ExpressionAttributeValues[":sourceIp"] = { S: sourceIp };
+                    }
                     client = new client_dynamodb_1.DynamoDBClient({
                         region: region,
                     });
-                    item = {
-                        "PartitionKey": { S: wid },
-                        "SortKey": { S: timeEpoch + "-" + sourceIp },
-                        "Time": { S: time },
-                        "TimeEpoch": { N: String(timeEpoch) },
-                        "SourceIp": { S: sourceIp },
-                        "UserAgent": { S: userAgent },
-                        "Sensor": sensor ? { S: sensor } : { NULL: true },
-                    };
-                    return [4 /*yield*/, client.send(new client_dynamodb_1.PutItemCommand({
-                            TableName: tableName,
-                            Item: item,
-                        }))];
+                    return [4 /*yield*/, client.send(new client_dynamodb_1.QueryCommand(input))];
                 case 1:
-                    putItemOutput = _d.sent();
+                    queryCommandOutput = _d.sent();
                     if (debug) {
-                        console.info('putItemOutput:', putItemOutput);
+                        console.info('queryCommandOutput:', queryCommandOutput);
                     }
-                    _d.label = 2;
-                case 2:
-                    if (direct) {
-                        return [2 /*return*/, {
-                                statusCode: 200,
-                                headers: {
-                                    "Content-Type": "video/mp4", //"application/octet-stream"
-                                },
-                                body: b64mp4(),
-                                isBase64Encoded: true,
-                            }];
-                    }
-                    else {
-                        return [2 /*return*/, {
-                                statusCode: 302,
-                                headers: {
-                                    Location: "https://github.com/kamicup/panda-tools/raw/main/resources/h264-cbp.mp4",
-                                    "Content-Type": "application/octet-stream",
-                                },
-                                body: "",
-                            }];
-                    }
-                    return [2 /*return*/];
+                    return [2 /*return*/, {
+                            statusCode: 200,
+                            body: JSON.stringify({
+                                Items: queryCommandOutput.Items,
+                                Count: queryCommandOutput.Count,
+                                ScannedCount: queryCommandOutput.ScannedCount,
+                            }),
+                        }];
+                case 2: return [2 /*return*/, {
+                        statusCode: 400,
+                        body: "missing wid"
+                    }];
             }
         });
     });
 }
 exports.handler = handler;
-/**
- * resources/h264-cbp.mp4 の base64 エンコード表現
- */
-var b64mp4 = function () {
-    return "AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAvVtZGF0AAACcQYF//9t3EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDE2NCByMzA5NSBiYWVlNDAwIC0gSC4yNjQvTVBFRy00IEFWQyBjb2RlYyAtIENvcHlsZWZ0IDIwMDMtMjAyMiAtIGh0dHA6Ly93d3cudmlkZW9sYW4ub3JnL3gyNjQuaHRtbCAtIG9wdGlvbnM6IGNhYmFjPTAgcmVmPTMgZGVibG9jaz0xOjA6MCBhbmFseXNlPTB4MToweDExMSBtZT1oZXggc3VibWU9NyBwc3k9MSBwc3lfcmQ9MS4wMDowLjAwIG1peGVkX3JlZj0xIG1lX3JhbmdlPTE2IGNocm9tYV9tZT0xIHRyZWxsaXM9MSA4eDhkY3Q9MCBjcW09MCBkZWFkem9uZT0yMSwxMSBmYXN0X3Bza2lwPTEgY2hyb21hX3FwX29mZnNldD0tMiB0aHJlYWRzPTEgbG9va2FoZWFkX3RocmVhZHM9MSBzbGljZWRfdGhyZWFkcz0wIG5yPTAgZGVjaW1hdGU9MSBpbnRlcmxhY2VkPTAgYmx1cmF5X2NvbXBhdD0wIGNvbnN0cmFpbmVkX2ludHJhPTAgYmZyYW1lcz0wIHdlaWdodHA9MCBrZXlpbnQ9MjUwIGtleWludF9taW49MTAgc2NlbmVjdXQ9NDAgaW50cmFfcmVmcmVzaD0wIHJjX2xvb2thaGVhZD00MCByYz1jcmYgbWJ0cmVlPTEgY3JmPTIzLjAgcWNvbXA9MC42MCBxcG1pbj0wIHFwbWF4PTY5IHFwc3RlcD00IGlwX3JhdGlvPTEuNDAgYXE9MToxLjAwAIAAAAAaZYiED/EYoAAm+xwABHBjgACrlJyddddddeAAAAAGQZo4H+KgAAAABkGaVAf4qAAAAAZBmmA/xUAAAAAGQZqAP8VAAAAABkGaoD/FQAAAAAZBmsA/xUAAAAAGQZrgP8VAAAAABkGbADvFQAAAAAZBmyA3xUAAAAM9bW9vdgAAAGxtdmhkAAAAAAAAAAAAAAAAAAAD6AAAA+gAAQAAAQAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAmh0cmFrAAAAXHRraGQAAAADAAAAAAAAAAAAAAABAAAAAAAAA+gAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAADAAAAAwAAAAAAAkZWR0cwAAABxlbHN0AAAAAAAAAAEAAAPoAAAAAAABAAAAAAHgbWRpYQAAACBtZGhkAAAAAAAAAAAAAAAAAAAoAAAAKABVxAAAAAAALWhkbHIAAAAAAAAAAHZpZGUAAAAAAAAAAAAAAABWaWRlb0hhbmRsZXIAAAABi21pbmYAAAAUdm1oZAAAAAEAAAAAAAAAAAAAACRkaW5mAAAAHGRyZWYAAAAAAAAAAQAAAAx1cmwgAAAAAQAAAUtzdGJsAAAAq3N0c2QAAAAAAAAAAQAAAJthdmMxAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAADAAMABIAAAASAAAAAAAAAABFExhdmM2MC4zLjEwMCBsaWJ4MjY0AAAAAAAAAAAAAAAAGP//AAAAMWF2Y0MBQsAK/+EAGWdCwArZDemoCBASAAADAAIAAAMAKB4kTJABAAVoy4PLIAAAABRidHJ0AAAAAAAAF2gAABdoAAAAGHN0dHMAAAAAAAAAAQAAAAoAAAQAAAAAFHN0c3MAAAAAAAAAAQAAAAEAAAAcc3RzYwAAAAAAAAABAAAAAQAAAAoAAAABAAAAPHN0c3oAAAAAAAAAAAAAAAoAAAKTAAAACgAAAAoAAAAKAAAACgAAAAoAAAAKAAAACgAAAAoAAAAKAAAAFHN0Y28AAAAAAAAAAQAAADAAAABhdWR0YQAAAFltZXRhAAAAAAAAACFoZGxyAAAAAAAAAABtZGlyYXBwbAAAAAAAAAAAAAAAACxpbHN0AAAAJKl0b28AAAAcZGF0YQAAAAEAAAAATGF2ZjYwLjMuMTAw";
-};
 
 
 /***/ })
@@ -22990,7 +22972,7 @@ var b64mp4 = function () {
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __webpack_require__(78);
+/******/ 	var __webpack_exports__ = __webpack_require__(326);
 /******/ 	module.exports = __webpack_exports__;
 /******/ 	
 /******/ })()

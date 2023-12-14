@@ -18,9 +18,10 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
         console.info('event:', event);
     }
 
-    const sourceIp = event.requestContext.http.sourceIp
-    const timeEpoch = event.requestContext.timeEpoch
     const time = event.requestContext.time
+    const timeEpoch = event.requestContext.timeEpoch
+    const sourceIp = event.requestContext.http.sourceIp
+    const userAgent = event.requestContext.http.userAgent
 
     const wid = event.queryStringParameters?.wid
     const sensor = event.queryStringParameters?.sensor
@@ -34,7 +35,9 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
             "PartitionKey": {S: wid},
             "SortKey": {S: timeEpoch + "-" + sourceIp},
             "Time": {S: time}, // for human-readability
+            "TimeEpoch": {N: String(timeEpoch)},
             "SourceIp": {S: sourceIp},
+            "UserAgent": {S: userAgent},
             "Sensor": sensor ? {S: sensor} : {NULL: true},
         }
         const putItemOutput = await client.send(new PutItemCommand({
