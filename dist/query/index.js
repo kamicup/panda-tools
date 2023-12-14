@@ -22888,11 +22888,13 @@ function handler(event, context, callback) {
                         }
                     };
                     if (sensor && sensor.length) {
-                        input.FilterExpression = "Sensor = :sensor";
+                        input.FilterExpression = "#sensor = :sensor";
+                        input.ExpressionAttributeNames = { "#sensor": "Sensor" };
                         input.ExpressionAttributeValues[":sensor"] = { S: sensor };
                     }
                     else if (sourceIp && sourceIp.length) {
-                        input.FilterExpression = "SourceIp = :sourceIp";
+                        input.FilterExpression = "#sourceIp = :sourceIp";
+                        input.ExpressionAttributeNames = { "#sourceIp": "SourceIp" };
                         input.ExpressionAttributeValues[":sourceIp"] = { S: sourceIp };
                     }
                     client = new client_dynamodb_1.DynamoDBClient({
