@@ -14,3 +14,4 @@ parameter_overrides = "DdbRegion=\"ap-northeast-1\" DdbTable=\"PandaTools\""
 image_repositories = []
 
 [default.local_start_api.parameters]
+host = "0.0.0.0"

@@ -10,8 +10,13 @@
     "watch": "nodemon -e ts --watch 'src/**/*.ts' --exec 'npm run build'",
     "build": "webpack --mode production --config webpack.config.ts",
     "postbuild": "PATH=$PATH:~/venv/bin sam build",
-    "mp4": "convert -size 2x2 xc:red _2x2.png && ffmpeg -loop 1 -i _2x2.png -c:v libx264 -t 1 -pix_fmt yuv420p _2x2.mp4 && base64 -i _2x2.mp4",
-    "postmp4": "rm _2x2.png && rm _2x2.mp4"
+    "resource-HiP": "ffmpeg -loop 1 -i resources/48x48.png -c:v libx264 -r 10 -t 1 -pix_fmt yuv420p -profile:v high     resources/h264-hip.mp4",
+    "resource-CBP": "ffmpeg -loop 1 -i resources/48x48.png -c:v libx264 -r 10 -t 1 -pix_fmt yuv420p -profile:v baseline resources/h264-cbp.mp4",
+    "postresource-HiP": "base64 -i resources/h264-hip.mp4",
+    "postresource-CBP": "base64 -i resources/h264-cbp.mp4",
+    "preresource": "rm resources/* && convert -size 48x48 xc:red resources/48x48.png",
+    "resource":  "npm run resource-HiP && npm run resource-CBP",
+    "postresource": "rm resources/48x48.png"
   },
   "repository": {
     "type": "git",
