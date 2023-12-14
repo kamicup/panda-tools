@@ -22871,7 +22871,7 @@ var debug = process.env.DEBUG === '1';
 function handler(event, context, callback) {
     var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function () {
-        var wid, sensor, sourceIp, input, client, queryCommandOutput, safeItems;
+        var wid, sensor, sourceIp, input, filters, decrypted, client, queryCommandOutput, safeItems;
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0:
@@ -22885,19 +22885,31 @@ function handler(event, context, callback) {
                     input = {
                         TableName: tableName,
                         KeyConditionExpression: "PartitionKey = :wid",
-                        ExpressionAttributeValues: {
-                            ":wid": { S: wid },
-                        }
+                        ExpressionAttributeNames: {},
+                        ExpressionAttributeValues: { ":wid": { S: wid } }
                     };
+                    filters = [];
                     if (sensor && sensor.length) {
-                        input.FilterExpression = "#sensor = :sensor";
-                        input.ExpressionAttributeNames = { "#sensor": "Sensor" };
+                        filters.push("#sensor = :sensor");
+                        input.ExpressionAttributeNames["#sensor"] = "Sensor";
                         input.ExpressionAttributeValues[":sensor"] = { S: sensor };
                     }
-                    else if (sourceIp && sourceIp.length) {
-                        input.FilterExpression = "#sourceIp = :sourceIp";
-                        input.ExpressionAttributeNames = { "#sourceIp": "SourceIp" };
-                        input.ExpressionAttributeValues[":sourceIp"] = { S: decrypt(sourceIp) };
+                    if (sourceIp && sourceIp.length) {
+                        try {
+                            decrypted = decrypt(sourceIp);
+                            filters.push("#sourceIp = :sourceIp");
+                            input.ExpressionAttributeNames["#sourceIp"] = "SourceIp";
+                            input.ExpressionAttributeValues[":sourceIp"] = { S: decrypted };
+                        }
+                        catch (e) {
+                            return [2 /*return*/, {
+                                    statusCode: 400,
+                                    body: 'invalid sourceIp',
+                                }];
+                        }
+                    }
+                    if (filters.length) {
+                        input.FilterExpression = filters.join(' and ');
                     }
                     client = new client_dynamodb_1.DynamoDBClient({
                         region: region,
@@ -22929,7 +22941,7 @@ function handler(event, context, callback) {
                         }];
                 case 2: return [2 /*return*/, {
                         statusCode: 400,
-                        body: "missing wid"
+                        body: 'missing wid'
                     }];
             }
         });
