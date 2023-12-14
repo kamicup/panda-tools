@@ -527,7 +527,7 @@ exports.uint32ArrayFrom = uint32ArrayFrom;
 
 /***/ }),
 
-/***/ 837:
+/***/ 830:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -3567,15 +3567,15 @@ const ENV_PROFILE = "AWS_PROFILE";
 const DEFAULT_PROFILE = "default";
 const getProfileName = (init) => init.profile || process.env[ENV_PROFILE] || DEFAULT_PROFILE;
 
-;// CONCATENATED MODULE: external "crypto"
-const external_crypto_namespaceObject = require("crypto");
-var external_crypto_default = /*#__PURE__*/__webpack_require__.n(external_crypto_namespaceObject);
+// EXTERNAL MODULE: external "crypto"
+var external_crypto_ = __webpack_require__(663);
+var external_crypto_default = /*#__PURE__*/__webpack_require__.n(external_crypto_);
 ;// CONCATENATED MODULE: ./node_modules/@smithy/shared-ini-file-loader/dist-es/getSSOTokenFilepath.js
 
 
 
 const getSSOTokenFilepath = (id) => {
-    const hasher = (0,external_crypto_namespaceObject.createHash)("sha1");
+    const hasher = (0,external_crypto_.createHash)("sha1");
     const cacheName = hasher.update(id).digest("hex");
     return (0,external_path_namespaceObject.join)(getHomeDir(), ".aws", "sso", "cache", `${cacheName}.json`);
 };
@@ -13940,8 +13940,8 @@ class Hash {
     }
     reset() {
         this.hash = this.secret
-            ? (0,external_crypto_namespaceObject.createHmac)(this.algorithmIdentifier, castSourceData(this.secret))
-            : (0,external_crypto_namespaceObject.createHash)(this.algorithmIdentifier);
+            ? (0,external_crypto_.createHmac)(this.algorithmIdentifier, castSourceData(this.secret))
+            : (0,external_crypto_.createHash)(this.algorithmIdentifier);
     }
 }
 function castSourceData(toCast, encoding) {
@@ -22798,6 +22798,29 @@ module.exports = toNumber
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -22836,17 +22859,19 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.handler = void 0;
-var client_dynamodb_1 = __webpack_require__(837);
+var client_dynamodb_1 = __webpack_require__(830);
+var crypto = __importStar(__webpack_require__(663));
 // 環境変数
 var region = process.env.DDB_REGION;
 var tableName = process.env.DDB_TABLE;
+var salt = process.env.SALT;
 var debug = process.env.DEBUG === '1';
 function handler(event, context, callback) {
-    var _a, _b, _c;
+    var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function () {
-        var wid, sensor, sourceIp, input, client, queryCommandOutput;
-        return __generator(this, function (_d) {
-            switch (_d.label) {
+        var wid, sensor, sourceIp, input, client, queryCommandOutput, safeItems;
+        return __generator(this, function (_e) {
+            switch (_e.label) {
                 case 0:
                     if (debug) {
                         console.info('event:', event);
@@ -22875,14 +22900,25 @@ function handler(event, context, callback) {
                     });
                     return [4 /*yield*/, client.send(new client_dynamodb_1.QueryCommand(input))];
                 case 1:
-                    queryCommandOutput = _d.sent();
+                    queryCommandOutput = _e.sent();
                     if (debug) {
                         console.info('queryCommandOutput:', queryCommandOutput);
                     }
+                    safeItems = (_d = queryCommandOutput.Items) === null || _d === void 0 ? void 0 : _d.map(function (value) {
+                        var _a, _b, _c, _d, _e, _f;
+                        return {
+                            WID: (_a = value.PartitionKey) === null || _a === void 0 ? void 0 : _a.S,
+                            Sensor: (_b = value.Sensor) === null || _b === void 0 ? void 0 : _b.S,
+                            Time: (_c = value.Time) === null || _c === void 0 ? void 0 : _c.S,
+                            TimeEpoch: (_d = value.TimeEpoch) === null || _d === void 0 ? void 0 : _d.N,
+                            SourceIpHash: generateHash((_e = value.SourceIp) === null || _e === void 0 ? void 0 : _e.S, 'SourceIp'),
+                            UserAgentHash: generateHash((_f = value.UserAgent) === null || _f === void 0 ? void 0 : _f.S, 'UserAgent'),
+                        };
+                    });
                     return [2 /*return*/, {
                             statusCode: 200,
                             body: JSON.stringify({
-                                Items: queryCommandOutput.Items,
+                                Items: safeItems,
                                 Count: queryCommandOutput.Count,
                                 ScannedCount: queryCommandOutput.ScannedCount,
                             }),
@@ -22896,7 +22932,25 @@ function handler(event, context, callback) {
     });
 }
 exports.handler = handler;
+var generateHash = function (source, sugar) {
+    if (!source) {
+        return undefined;
+    }
+    var hash = crypto.createHash('sha256');
+    hash.update(sugar);
+    hash.update(source);
+    hash.update(salt);
+    return hash.digest('hex');
+};
 
+
+/***/ }),
+
+/***/ 663:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("crypto");
 
 /***/ })
 
