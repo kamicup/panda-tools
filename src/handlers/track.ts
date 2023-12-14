@@ -1,10 +1,5 @@
 import {AttributeValue, DynamoDBClient, PutItemCommand} from '@aws-sdk/client-dynamodb'
-import {
-    APIGatewayProxyCallbackV2,
-    APIGatewayProxyEventV2,
-    APIGatewayProxyResultV2,
-    Context,
-} from 'aws-lambda'
+import {APIGatewayProxyCallbackV2, APIGatewayProxyEventV2, APIGatewayProxyResultV2, Context} from 'aws-lambda'
 
 // 環境変数
 const region = process.env.DDB_REGION

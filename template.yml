@@ -10,8 +10,10 @@ Parameters:
   DdbTable:
     Type: String
     Default: PandaTools
+  Salt:
+    Type: String
+    Default: SaltSaltSaltSaltSaltSaltSaltSaltSaltSaltSaltSaltSalt
 
-# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
     Runtime: nodejs16.x
@@ -23,6 +25,7 @@ Globals:
       Variables:
         DDB_REGION: !Ref DdbRegion
         DDB_TABLE: !Ref DdbTable
+        SALT: !Ref Salt
         DEBUG: "0"
 
 Resources:
