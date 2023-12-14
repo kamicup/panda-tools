@@ -23,7 +23,7 @@ Globals:
       Variables:
         DDB_REGION: !Ref DdbRegion
         DDB_TABLE: !Ref DdbTable
-        DEBUG: "1"
+        DEBUG: "0"
 
 Resources:
   HttpApi:
@@ -39,6 +39,22 @@ Resources:
             ApiId: !Ref HttpApi
             Method: GET
             Path: /track
+
+  QueryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: dist/query/
+      Events:
+        Track:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Method: GET
+            Path: /query
+      Environment:
+        Variables:
+          DEBUG: "1"
+
   DynamoDBTable:
     Type: AWS::DynamoDB::Table
     Properties:

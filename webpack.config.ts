@@ -10,6 +10,10 @@ const config: Configuration = {
             import: './src/handlers/track.ts',
             filename: "track/index.js",
         },
+        query: {
+            import: './src/handlers/query.ts',
+            filename: "query/index.js",
+        },
     },
     output: {
         path: `${__dirname}/dist`,
