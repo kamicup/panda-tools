@@ -29,6 +29,6 @@ jobs:
           --parameter-overrides
           DdbRegion=$DDB_REGION
           DdbTable=$DDB_TABLE
-          Salt=$SALT
-          CipherKey=$CIPHER_KEY
-          CipherIv=$CIPHER_IV
+          Salt="$SALT"
+          CipherKey="$CIPHER_KEY"
+          CipherIv="$CIPHER_IV"
