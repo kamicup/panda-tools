@@ -22902,10 +22902,7 @@ function handler(event, context, callback) {
                             input.ExpressionAttributeValues[":sourceIp"] = { S: decrypted };
                         }
                         catch (e) {
-                            return [2 /*return*/, {
-                                    statusCode: 400,
-                                    body: 'invalid sourceIp',
-                                }];
+                            return [2 /*return*/, errorJsonResponse('invalid sourceIp')];
                         }
                     }
                     if (filters.length) {
@@ -22931,23 +22928,26 @@ function handler(event, context, callback) {
                             UserAgentHash: hash((_f = value.UserAgent) === null || _f === void 0 ? void 0 : _f.S),
                         };
                     });
-                    return [2 /*return*/, {
-                            statusCode: 200,
-                            body: JSON.stringify({
-                                Items: safeItems,
-                                Count: queryCommandOutput.Count,
-                                ScannedCount: queryCommandOutput.ScannedCount,
-                            }),
-                        }];
-                case 2: return [2 /*return*/, {
-                        statusCode: 400,
-                        body: 'missing wid'
-                    }];
+                    return [2 /*return*/, jsonResponse(200, {
+                            Items: safeItems,
+                            Count: queryCommandOutput.Count,
+                            ScannedCount: queryCommandOutput.ScannedCount,
+                        })];
+                case 2: return [2 /*return*/, errorJsonResponse('missing wid')];
             }
         });
     });
 }
 exports.handler = handler;
+var errorJsonResponse = function (message) {
+    return jsonResponse(400, { error: message });
+};
+var jsonResponse = function (statusCode, body) {
+    return {
+        statusCode: statusCode,
+        body: JSON.stringify(body),
+    };
+};
 var hash = function (source) {
     if (!source) {
         return undefined;

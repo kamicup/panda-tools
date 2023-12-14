@@ -41,10 +41,7 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
                 input.ExpressionAttributeNames!["#sourceIp"] = "SourceIp"
                 input.ExpressionAttributeValues![":sourceIp"] = {S: decrypted}
             } catch (e) {
-                return {
-                    statusCode: 400,
-                    body: 'invalid sourceIp',
-                }
+                return errorJsonResponse('invalid sourceIp')
             }
         }
         if (filters.length) {
@@ -70,19 +67,23 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
             }
         })
 
-        return {
-            statusCode: 200,
-            body: JSON.stringify({
-                Items: safeItems,
-                Count: queryCommandOutput.Count,
-                ScannedCount: queryCommandOutput.ScannedCount,
-            }),
-        }
+        return jsonResponse(200, {
+            Items: safeItems,
+            Count: queryCommandOutput.Count,
+            ScannedCount: queryCommandOutput.ScannedCount,
+        })
     }
+    return errorJsonResponse('missing wid')
+}
 
+const errorJsonResponse = (message: string) => {
+    return jsonResponse(400, {error: message})
+}
+
+const jsonResponse = (statusCode: number, body: any) => {
     return {
-        statusCode: 400,
-        body: 'missing wid'
+        statusCode: statusCode,
+        body: JSON.stringify(body),
     }
 }
 
