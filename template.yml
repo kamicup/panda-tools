@@ -13,6 +13,12 @@ Parameters:
   Salt:
     Type: String
     Default: SaltSaltSaltSaltSaltSaltSaltSaltSaltSaltSaltSaltSalt
+  CipherKey:
+    Type: String
+    Default: OGf7zr5z09DilfI05No2vwsI2bUjqtB7yYDstrbGO34=
+  CipherIv:
+    Type: String
+    Default: EIl5hKQ0XFqX6kHL/ShMCg==
 
 Globals:
   Function:
@@ -26,6 +32,8 @@ Globals:
         DDB_REGION: !Ref DdbRegion
         DDB_TABLE: !Ref DdbTable
         SALT: !Ref Salt
+        CIPHER_KEY: !Ref CipherKey
+        CIPHER_IV: !Ref CipherIv
         DEBUG: "0"
 
 Resources:
