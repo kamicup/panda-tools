@@ -22865,6 +22865,8 @@ var crypto = __importStar(__webpack_require__(663));
 var region = process.env.DDB_REGION;
 var tableName = process.env.DDB_TABLE;
 var salt = process.env.SALT;
+var key = new Buffer(process.env.CIPHER_KEY, 'base64'); // 32バイトの鍵
+var iv = new Buffer(process.env.CIPHER_IV, 'base64'); // 16バイトの初期化ベクトル
 var debug = process.env.DEBUG === '1';
 function handler(event, context, callback) {
     var _a, _b, _c, _d;
@@ -22895,7 +22897,7 @@ function handler(event, context, callback) {
                     else if (sourceIp && sourceIp.length) {
                         input.FilterExpression = "#sourceIp = :sourceIp";
                         input.ExpressionAttributeNames = { "#sourceIp": "SourceIp" };
-                        input.ExpressionAttributeValues[":sourceIp"] = { S: sourceIp };
+                        input.ExpressionAttributeValues[":sourceIp"] = { S: decrypt(sourceIp) };
                     }
                     client = new client_dynamodb_1.DynamoDBClient({
                         region: region,
@@ -22913,8 +22915,8 @@ function handler(event, context, callback) {
                             Sensor: (_b = value.Sensor) === null || _b === void 0 ? void 0 : _b.S,
                             Time: (_c = value.Time) === null || _c === void 0 ? void 0 : _c.S,
                             TimeEpoch: (_d = value.TimeEpoch) === null || _d === void 0 ? void 0 : _d.N,
-                            SourceIpHash: generateHash((_e = value.SourceIp) === null || _e === void 0 ? void 0 : _e.S, 'SourceIp'),
-                            UserAgentHash: generateHash((_f = value.UserAgent) === null || _f === void 0 ? void 0 : _f.S, 'UserAgent'),
+                            SourceIp: encrypt((_e = value.SourceIp) === null || _e === void 0 ? void 0 : _e.S),
+                            UserAgentHash: hash((_f = value.UserAgent) === null || _f === void 0 ? void 0 : _f.S),
                         };
                     });
                     return [2 /*return*/, {
@@ -22934,16 +22936,30 @@ function handler(event, context, callback) {
     });
 }
 exports.handler = handler;
-var generateHash = function (source, sugar) {
+var hash = function (source) {
     if (!source) {
         return undefined;
     }
     var hash = crypto.createHash('sha256');
-    hash.update(sugar);
     hash.update(source);
     hash.update(salt);
     return hash.digest('hex');
 };
+function encrypt(text) {
+    if (!text) {
+        return undefined;
+    }
+    var cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+    var encrypted = cipher.update(text, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    return encrypted;
+}
+function decrypt(encrypted) {
+    var decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+    var decrypted = decipher.update(encrypted, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    return decrypted;
+}
 
 
 /***/ }),

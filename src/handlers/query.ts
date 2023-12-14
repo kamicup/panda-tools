@@ -6,6 +6,8 @@ import * as crypto from 'crypto'
 const region = process.env.DDB_REGION
 const tableName = process.env.DDB_TABLE!
 const salt = process.env.SALT!
+const key = new Buffer(process.env.CIPHER_KEY!, 'base64'); // 32バイトの鍵
+const iv = new Buffer(process.env.CIPHER_IV!, 'base64'); // 16バイトの初期化ベクトル
 const debug = process.env.DEBUG === '1'
 
 export async function handler(event: APIGatewayProxyEventV2, context: Context, callback: APIGatewayProxyCallbackV2)
@@ -34,7 +36,7 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
         } else if (sourceIp && sourceIp.length) {
             input.FilterExpression = "#sourceIp = :sourceIp"
             input.ExpressionAttributeNames = {"#sourceIp": "SourceIp"}
-            input.ExpressionAttributeValues![":sourceIp"] = {S: sourceIp}
+            input.ExpressionAttributeValues![":sourceIp"] = {S: decrypt(sourceIp)}
         }
 
         const client = new DynamoDBClient({
@@ -51,8 +53,8 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
                 Sensor: value.Sensor?.S,
                 Time: value.Time?.S,
                 TimeEpoch: value.TimeEpoch?.N,
-                SourceIpHash: generateHash(value.SourceIp?.S, 'SourceIp'),
-                UserAgentHash: generateHash(value.UserAgent?.S, 'UserAgent'),
+                SourceIp: encrypt(value.SourceIp?.S),
+                UserAgentHash: hash(value.UserAgent?.S),
             }
         })
 
@@ -66,20 +68,35 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
         }
     }
 
-
     return {
         statusCode: 400,
         body: "missing wid"
     }
 }
 
-const generateHash = (source: string|undefined, sugar: string) => {
+const hash = (source: string|undefined) => {
     if (!source) {
         return undefined
     }
     const hash = crypto.createHash('sha256')
-    hash.update(sugar)
     hash.update(source)
     hash.update(salt)
     return hash.digest('hex')
+}
+
+function encrypt(text: string|undefined) {
+    if (!text) {
+        return undefined
+    }
+    const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+    let encrypted = cipher.update(text, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    return encrypted;
+}
+
+function decrypt(encrypted: string) {
+    const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+    let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    return decrypted;
 }
