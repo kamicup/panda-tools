@@ -25,20 +25,20 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
         const input : QueryCommandInput = {
             TableName: tableName,
             KeyConditionExpression: "PartitionKey = :wid",
-            ExpressionAttributeNames: {},
             ExpressionAttributeValues: {":wid": {S: wid}}
         }
         const filters: string[] = []
+        const eaNames: Record<string, string> = {}
         if (sensor && sensor.length) {
             filters.push("#sensor = :sensor")
-            input.ExpressionAttributeNames!["#sensor"] = "Sensor"
+            eaNames["#sensor"] = "Sensor"
             input.ExpressionAttributeValues![":sensor"] = {S: sensor}
         }
         if (sourceIp && sourceIp.length) {
             try {
                 const decrypted = decrypt(sourceIp)
                 filters.push("#sourceIp = :sourceIp")
-                input.ExpressionAttributeNames!["#sourceIp"] = "SourceIp"
+                eaNames["#sourceIp"] = "SourceIp"
                 input.ExpressionAttributeValues![":sourceIp"] = {S: decrypted}
             } catch (e) {
                 return errorJsonResponse('invalid sourceIp')
@@ -46,6 +46,7 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
         }
         if (filters.length) {
             input.FilterExpression = filters.join(' and ')
+            input.ExpressionAttributeNames = eaNames
         }
 
         const client = new DynamoDBClient({
@@ -59,9 +60,10 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
         const safeItems = queryCommandOutput.Items?.map((value) => {
             return {
                 WID: value.PartitionKey?.S,
-                Sensor: value.Sensor?.S,
                 Time: value.Time?.S,
                 TimeEpoch: value.TimeEpoch?.N,
+                Sensor: value.Sensor?.S,
+                Timing: value.Timing?.N,
                 SourceIp: encrypt(value.SourceIp?.S),
                 UserAgentHash: hash(value.UserAgent?.S),
             }
