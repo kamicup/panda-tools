@@ -22871,7 +22871,7 @@ var debug = process.env.DEBUG === '1';
 function handler(event, context, callback) {
     var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function () {
-        var wid, sensor, sourceIp, input, filters, decrypted, client, queryCommandOutput, safeItems;
+        var wid, sensor, sourceIp, input, filters, eaNames, decrypted, client, queryCommandOutput, safeItems;
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0:
@@ -22885,20 +22885,20 @@ function handler(event, context, callback) {
                     input = {
                         TableName: tableName,
                         KeyConditionExpression: "PartitionKey = :wid",
-                        ExpressionAttributeNames: {},
                         ExpressionAttributeValues: { ":wid": { S: wid } }
                     };
                     filters = [];
+                    eaNames = {};
                     if (sensor && sensor.length) {
                         filters.push("#sensor = :sensor");
-                        input.ExpressionAttributeNames["#sensor"] = "Sensor";
+                        eaNames["#sensor"] = "Sensor";
                         input.ExpressionAttributeValues[":sensor"] = { S: sensor };
                     }
                     if (sourceIp && sourceIp.length) {
                         try {
                             decrypted = decrypt(sourceIp);
                             filters.push("#sourceIp = :sourceIp");
-                            input.ExpressionAttributeNames["#sourceIp"] = "SourceIp";
+                            eaNames["#sourceIp"] = "SourceIp";
                             input.ExpressionAttributeValues[":sourceIp"] = { S: decrypted };
                         }
                         catch (e) {
@@ -22907,6 +22907,7 @@ function handler(event, context, callback) {
                     }
                     if (filters.length) {
                         input.FilterExpression = filters.join(' and ');
+                        input.ExpressionAttributeNames = eaNames;
                     }
                     client = new client_dynamodb_1.DynamoDBClient({
                         region: region,
@@ -22918,14 +22919,15 @@ function handler(event, context, callback) {
                         console.info('queryCommandOutput:', queryCommandOutput);
                     }
                     safeItems = (_d = queryCommandOutput.Items) === null || _d === void 0 ? void 0 : _d.map(function (value) {
-                        var _a, _b, _c, _d, _e, _f;
+                        var _a, _b, _c, _d, _e, _f, _g;
                         return {
                             WID: (_a = value.PartitionKey) === null || _a === void 0 ? void 0 : _a.S,
-                            Sensor: (_b = value.Sensor) === null || _b === void 0 ? void 0 : _b.S,
-                            Time: (_c = value.Time) === null || _c === void 0 ? void 0 : _c.S,
-                            TimeEpoch: (_d = value.TimeEpoch) === null || _d === void 0 ? void 0 : _d.N,
-                            SourceIp: encrypt((_e = value.SourceIp) === null || _e === void 0 ? void 0 : _e.S),
-                            UserAgentHash: hash((_f = value.UserAgent) === null || _f === void 0 ? void 0 : _f.S),
+                            Time: (_b = value.Time) === null || _b === void 0 ? void 0 : _b.S,
+                            TimeEpoch: (_c = value.TimeEpoch) === null || _c === void 0 ? void 0 : _c.N,
+                            Sensor: (_d = value.Sensor) === null || _d === void 0 ? void 0 : _d.S,
+                            Timing: (_e = value.Timing) === null || _e === void 0 ? void 0 : _e.N,
+                            SourceIp: encrypt((_f = value.SourceIp) === null || _f === void 0 ? void 0 : _f.S),
+                            UserAgentHash: hash((_g = value.UserAgent) === null || _g === void 0 ? void 0 : _g.S),
                         };
                     });
                     return [2 /*return*/, jsonResponse(200, {
