@@ -22842,11 +22842,11 @@ var region = process.env.DDB_REGION;
 var tableName = process.env.DDB_TABLE;
 var debug = process.env.DEBUG === '1';
 function handler(event, context, callback) {
-    var _a, _b, _c;
+    var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function () {
-        var time, timeEpoch, sourceIp, userAgent, wid, sensor, direct, client, item, putItemOutput;
-        return __generator(this, function (_d) {
-            switch (_d.label) {
+        var time, timeEpoch, sourceIp, userAgent, wid, sensor, timing, direct, client, item, putItemOutput;
+        return __generator(this, function (_e) {
+            switch (_e.label) {
                 case 0:
                     if (debug) {
                         console.info('event:', event);
@@ -22857,7 +22857,8 @@ function handler(event, context, callback) {
                     userAgent = event.requestContext.http.userAgent;
                     wid = (_a = event.queryStringParameters) === null || _a === void 0 ? void 0 : _a.wid;
                     sensor = (_b = event.queryStringParameters) === null || _b === void 0 ? void 0 : _b.sensor;
-                    direct = (_c = event.queryStringParameters) === null || _c === void 0 ? void 0 : _c.direct;
+                    timing = (_c = event.queryStringParameters) === null || _c === void 0 ? void 0 : _c.timing;
+                    direct = (_d = event.queryStringParameters) === null || _d === void 0 ? void 0 : _d.direct;
                     if (!wid) return [3 /*break*/, 2];
                     client = new client_dynamodb_1.DynamoDBClient({
                         region: region,
@@ -22870,17 +22871,18 @@ function handler(event, context, callback) {
                         "SourceIp": { S: sourceIp },
                         "UserAgent": { S: userAgent },
                         "Sensor": sensor ? { S: sensor } : { NULL: true },
+                        "Timing": timing ? { N: timing } : { NULL: true },
                     };
                     return [4 /*yield*/, client.send(new client_dynamodb_1.PutItemCommand({
                             TableName: tableName,
                             Item: item,
                         }))];
                 case 1:
-                    putItemOutput = _d.sent();
+                    putItemOutput = _e.sent();
                     if (debug) {
                         console.info('putItemOutput:', putItemOutput);
                     }
-                    _d.label = 2;
+                    _e.label = 2;
                 case 2:
                     if (direct) {
                         return [2 /*return*/, {
