@@ -20,6 +20,7 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
 
     const wid = event.queryStringParameters?.wid
     const sensor = event.queryStringParameters?.sensor
+    const timing = event.queryStringParameters?.timing
     const direct = event.queryStringParameters?.direct
 
     if (wid) {
@@ -34,6 +35,7 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
             "SourceIp": {S: sourceIp},
             "UserAgent": {S: userAgent},
             "Sensor": sensor ? {S: sensor} : {NULL: true},
+            "Timing": timing ? {N: timing} : {NULL: true},
         }
         const putItemOutput = await client.send(new PutItemCommand({
             TableName: tableName,
