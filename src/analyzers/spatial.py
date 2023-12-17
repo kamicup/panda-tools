@@ -1,14 +1,20 @@
 import datetime
+import io
 import os
 import sys
 import time
 
+import cv2
+import matplotlib.figure as fgr
 import matplotlib.pyplot as plt
+import mpl_toolkits.mplot3d.axes3d as ax3d
 import numpy as np
 import requests
+from PIL import Image
 
 output_dir = os.path.abspath(os.path.dirname(__file__) + '/../../output')
-
+output_size = (800, 600)
+output_dpi = 75
 
 def get_data(wid: str):
     url = "https://0ivhbivo92.execute-api.ap-northeast-1.amazonaws.com/query?wid=" + wid
@@ -71,28 +77,33 @@ def timing_data_of(items: list):
 
 
 def create_plots(wid: str):
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
     [real_wid, pass_phrase] = wid.split('_')
 
     items = get_data(wid)
     (datetime_min, datetime_max) = timestamp_range_of(items)
     sensor_data = sensor_data_of(items)
+    (a, b) = timing_data_of(items)
+
+    (size_w, size_h) = output_size
+    figsize = (size_w/output_dpi, size_h/output_dpi)
 
     # 滞在時間
-    (a, b) = timing_data_of(items)
-    print(a, b)
-    fig2 = plt.figure()
-    ax2 = fig2.add_subplot(plt.subplot(1,1,1))
+    fig2: fgr.Figure = plt.figure(figsize=figsize, dpi=output_dpi)
+    ax2 = fig2.add_subplot(111)
     ax2.set_title('How long does visitors staying')
     ax2.set_xlabel('Timing (seconds)')
     ax2.set_ylabel('Count')
     ax2.bar(range(len(a)), b, tick_label=a)
     fig2.suptitle('World ID: {}'.format(real_wid))
+    fig2.savefig(os.path.join(output_dir, 'timing.png'))
 
     # 三次元空間ヒートマップ
     x, y, z = np.meshgrid(range(sensor_data.shape[0]), range(sensor_data.shape[1]), range(sensor_data.shape[2]))
-
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d', aspect='equal')
+    fig: fgr.Figure = plt.figure(figsize=figsize, dpi=output_dpi)
+    ax: ax3d.Axes3D = fig.add_subplot(111, projection='3d', aspect='equal')
     sc = ax.scatter(x, y, z, c=sensor_data, alpha=0.3, cmap='jet')
     fig.colorbar(sc)
 
@@ -101,40 +112,25 @@ def create_plots(wid: str):
     plt.suptitle('World ID: {}'.format(real_wid))
     plt.show()
 
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+    fig.savefig(os.path.join(output_dir, 'fig.png'))
+
+    writer = cv2.VideoWriter('../../output/movie.mp4',
+                          cv2.VideoWriter_fourcc(*'MP4V'),
+                          5.0,
+                          output_size)
     for angle in range(0, 360):
         if angle % 10 == 0:
             ax.view_init(elev=15, azim=angle + 30)
-            fig.savefig(os.path.join(output_dir, 'fig_{:03d}'.format(angle) + '.png'))
-
-
-def create_movie():
-    import glob, re
-    import cv2
-
-    filepath_list = glob.glob(os.path.join(output_dir, '*.png'))
-    filepath_list = sorted(filepath_list, key=lambda x: int((re.search(r"[0-9]+", x)).group(0)))
-
-    size = None
-    img_list = []
-    for file_path in filepath_list:
-        img = cv2.imread(file_path)
-        height, width, layers = img.shape
-        size = (width, height)
-        img_list.append(img)
-
-    out = cv2.VideoWriter('../../output/movie.mp4',
-                          cv2.VideoWriter_fourcc(*'MP4V'),
-                          5.0,
-                          size)
-
-    for i in range(len(img_list)):
-        out.write(img_list[i])
-    out.release()
+            buf = io.BytesIO()
+            fig.savefig(buf, format='png', dpi=output_dpi)
+            buf.seek(0)
+            img_arr = np.frombuffer(buf.getvalue(), dtype=np.uint8)
+            buf.close()
+            img = cv2.imdecode(img_arr, 1)
+            writer.write(img)
+    writer.release()
 
 
 if __name__ == "__main__":
     wid = sys.argv[1]
     create_plots(wid)
-    create_movie()
