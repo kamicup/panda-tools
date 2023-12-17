@@ -10,18 +10,17 @@ import matplotlib.pyplot as plt
 import mpl_toolkits.mplot3d.axes3d as ax3d
 import numpy as np
 import requests
-from PIL import Image
 
 output_dir = os.path.abspath(os.path.dirname(__file__) + '/../../output')
 output_size = (800, 600)
 output_dpi = 75
 
-def get_data(wid: str):
+
+def get_data(wid: str) -> (list, list, list):
     url = "https://0ivhbivo92.execute-api.ap-northeast-1.amazonaws.com/query?wid=" + wid
     r = requests.get(url)
     data = r.json()
-    # print(data)
-    return data['Items']
+    return data['Items'], data['Count'], data['ScannedCount']
 
 
 def timestamp_range_of(items: list):
@@ -68,12 +67,12 @@ def timing_data_of(items: list):
                 data[timing] += 1
             else:
                 data[timing] = 1
-    a = []
-    b = []
+    timings = []
+    counts = []
     for key, value in data.items():
-        a.append(float(key))
-        b.append(value)
-    return a, b
+        timings.append(float(key))
+        counts.append(value)
+    return timings, counts
 
 
 def create_plots(wid: str):
@@ -82,27 +81,29 @@ def create_plots(wid: str):
 
     [real_wid, pass_phrase] = wid.split('_')
 
-    items = get_data(wid)
+    (items, count, scanned_count) = get_data(wid)
+    print('count: {}, scanned: {}'.format(count, scanned_count))
+
     (datetime_min, datetime_max) = timestamp_range_of(items)
     sensor_data = sensor_data_of(items)
-    (a, b) = timing_data_of(items)
+    (timing_seconds, timing_counts) = timing_data_of(items)
 
     (size_w, size_h) = output_size
-    figsize = (size_w/output_dpi, size_h/output_dpi)
+    fig_size = (size_w / output_dpi, size_h / output_dpi)
 
     # 滞在時間
-    fig2: fgr.Figure = plt.figure(figsize=figsize, dpi=output_dpi)
+    fig2: fgr.Figure = plt.figure(figsize=fig_size, dpi=output_dpi)
     ax2 = fig2.add_subplot(111)
     ax2.set_title('How long does visitors staying')
     ax2.set_xlabel('Timing (seconds)')
     ax2.set_ylabel('Count')
-    ax2.bar(range(len(a)), b, tick_label=a)
+    ax2.bar(range(len(timing_seconds)), timing_counts, tick_label=timing_seconds)
     fig2.suptitle('World ID: {}'.format(real_wid))
     fig2.savefig(os.path.join(output_dir, 'timing.png'))
 
     # 三次元空間ヒートマップ
     x, y, z = np.meshgrid(range(sensor_data.shape[0]), range(sensor_data.shape[1]), range(sensor_data.shape[2]))
-    fig: fgr.Figure = plt.figure(figsize=figsize, dpi=output_dpi)
+    fig: fgr.Figure = plt.figure(figsize=fig_size, dpi=output_dpi)
     ax: ax3d.Axes3D = fig.add_subplot(111, projection='3d', aspect='equal')
     sc = ax.scatter(x, y, z, c=sensor_data, alpha=0.3, cmap='jet')
     fig.colorbar(sc)
@@ -115,9 +116,9 @@ def create_plots(wid: str):
     fig.savefig(os.path.join(output_dir, 'fig.png'))
 
     writer = cv2.VideoWriter('../../output/movie.mp4',
-                          cv2.VideoWriter_fourcc(*'MP4V'),
-                          5.0,
-                          output_size)
+                             cv2.VideoWriter_fourcc(*'MP4V'),
+                             5.0,
+                             output_size)
     for angle in range(0, 360):
         if angle % 10 == 0:
             ax.view_init(elev=15, azim=angle + 30)
