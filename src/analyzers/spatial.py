@@ -116,7 +116,7 @@ def create_plots(wid: str):
     fig.savefig(os.path.join(output_dir, 'fig.png'))
 
     writer = cv2.VideoWriter('../../output/movie.mp4',
-                             cv2.VideoWriter_fourcc(*'MP4V'),
+                             cv2.VideoWriter_fourcc('m', 'p', '4', 'v'),
                              5.0,
                              output_size)
     for angle in range(0, 360):
