@@ -62,6 +62,7 @@ Resources:
             ApiId: !Ref HttpApi
             Method: GET
             Path: /query
+      Timeout: 30
       Environment:
         Variables:
           DEBUG: "1"
