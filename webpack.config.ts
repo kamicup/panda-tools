@@ -14,6 +14,10 @@ const config: Configuration = {
             import: './src/handlers/query.ts',
             filename: "query/index.js",
         },
+        beta: {
+            import: './src/handlers/beta.ts',
+            filename: "beta/index.js",
+        },
     },
     output: {
         path: `${__dirname}/dist`,
