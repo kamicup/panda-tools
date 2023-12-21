@@ -5,6 +5,7 @@ import {APIGatewayProxyCallbackV2, APIGatewayProxyEventV2, APIGatewayProxyResult
 const region = process.env.DDB_REGION
 const tableName = process.env.DDB_TABLE!
 const debug = process.env.DEBUG === '1'
+const verify = process.env.VERIFY_TOKEN!
 
 export async function handler(event: APIGatewayProxyEventV2, context: Context, callback: APIGatewayProxyCallbackV2)
     : Promise<APIGatewayProxyResultV2> {
@@ -48,6 +49,9 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
 
     return {
         statusCode: 200,
-        body: JSON.stringify({}),
+        body: JSON.stringify({
+            verify: verify,
+            response: "ok",
+        }),
     }
 }

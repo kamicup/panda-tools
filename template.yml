@@ -19,6 +19,9 @@ Parameters:
   CipherIv:
     Type: String
     Default: EIl5hKQ0XFqX6kHL/ShMCg==
+  VerifyToken:
+    Type: String
+    Default: TO_BE_CONFIGURED
 
 Globals:
   Function:
@@ -77,6 +80,7 @@ Resources:
             Path: /beta
       Environment:
         Variables:
+          VERIFY_TOKEN: !Ref VerifyToken
           DEBUG: "1"
 
   DynamoDBTable:
