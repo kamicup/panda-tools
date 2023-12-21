@@ -27,6 +27,7 @@ jobs:
           SALT: ${{ secrets.SALT }}
           CIPHER_KEY: ${{ secrets.CIPHER_KEY }}
           CIPHER_IV: ${{ secrets.CIPHER_IV }}
+          VERIFY_TOKEN: ${{ secrets.VERIFY_TOKEN }}
         run: >
           sam deploy --no-confirm-changeset --no-fail-on-empty-changeset
           --parameter-overrides
@@ -35,3 +36,4 @@ jobs:
           Salt=$SALT
           CipherKey=$CIPHER_KEY
           CipherIv=$CIPHER_IV
+          VerifyToken=$VERIFY_TOKEN

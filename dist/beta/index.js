@@ -48,6 +48,7 @@ exports.handler = void 0;
 var region = process.env.DDB_REGION;
 var tableName = process.env.DDB_TABLE;
 var debug = process.env.DEBUG === '1';
+var verify = process.env.VERIFY_TOKEN;
 function handler(event, context, callback) {
     return __awaiter(this, void 0, void 0, function () {
         var time, timeEpoch, sourceIp, userAgent;
@@ -88,7 +89,10 @@ function handler(event, context, callback) {
             // }
             return [2 /*return*/, {
                     statusCode: 200,
-                    body: JSON.stringify({}),
+                    body: JSON.stringify({
+                        verify: verify,
+                        response: "ok",
+                    }),
                 }];
         });
     });
