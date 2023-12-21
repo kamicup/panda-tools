@@ -63,6 +63,18 @@ Resources:
             Method: GET
             Path: /query
       Timeout: 30
+
+  BetaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: dist/beta/
+      Events:
+        Track:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Method: POST
+            Path: /beta
       Environment:
         Variables:
           DEBUG: "1"
