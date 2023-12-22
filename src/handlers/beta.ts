@@ -20,17 +20,20 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
     // const userAgent = event.requestContext.http.userAgent
 
     const body = JSON.parse(event.body!)
-    //  body: '{"request":"{\\"WID\\":\\"test_test\\",\\"Sensor\\":\\"1_1_0\\",\\"Series\\":\\"c8f39aa7-963d-400f-9758-1427b2d7db9d:1703225266603,\\"}"}',
-
-    const wid = body.request?.WID as string
-    const sensor = body.request?.Sensor as string
-    const series = body.request?.Series as string
+    if (debug) {
+        console.info('body:', body)
+    }
+    const data = JSON.parse(body.request)
+    const wid = data.WID as string
+    const sensor = data.Sensor as string
+    const series = data.Series as string
 
     if (wid) {
         const client = new DynamoDBClient({
             region: region,
         })
         for (const entry of series.split(',')) {
+            if (entry === "") continue
             const [userID, timestamp] = entry.split(':')
             const item : Record<string, AttributeValue> = {
                 "PartitionKey": {S: wid},
