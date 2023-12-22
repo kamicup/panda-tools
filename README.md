@@ -108,6 +108,6 @@ python .\src\analyzers\spatial.py a47b8bd6-cf0d-4cec-ac75-1fa940280a0d_KEPAPIPI
 
 「集計して表示する」ボタンを押すと、結果を取得してシーン上の該当位置に簡易表示することができます。
 
-![シーン上に簡易表示](resources/example-unity-report.png)
+![シーン上に簡易表示](resources/example-unity-report.webp)
 
 （新しいベータ機能を使えばワールド内にライブで表示されることも可能ではありますが、意味ないよねと思ったので作っていません。）
