@@ -22843,11 +22843,10 @@ var tableName = process.env.DDB_TABLE;
 var debug = process.env.DEBUG === '1';
 var verify = process.env.VERIFY_TOKEN;
 function handler(event, context, callback) {
-    var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function () {
-        var time, timeEpoch, sourceIp, body, wid, sensor, series, client, _i, _d, entry, _e, userID, timestamp, item, putItemOutput;
-        return __generator(this, function (_f) {
-            switch (_f.label) {
+        var time, timeEpoch, sourceIp, body, data, wid, sensor, series, client, _i, _a, entry, _b, userID, timestamp, item, putItemOutput;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
                 case 0:
                     if (debug) {
                         console.info('event:', event);
@@ -22856,19 +22855,25 @@ function handler(event, context, callback) {
                     timeEpoch = event.requestContext.timeEpoch;
                     sourceIp = event.requestContext.http.sourceIp;
                     body = JSON.parse(event.body);
-                    wid = (_a = body.request) === null || _a === void 0 ? void 0 : _a.WID;
-                    sensor = (_b = body.request) === null || _b === void 0 ? void 0 : _b.Sensor;
-                    series = (_c = body.request) === null || _c === void 0 ? void 0 : _c.Series;
+                    if (debug) {
+                        console.info('body:', body);
+                    }
+                    data = JSON.parse(body.request);
+                    wid = data.WID;
+                    sensor = data.Sensor;
+                    series = data.Series;
                     if (!wid) return [3 /*break*/, 4];
                     client = new client_dynamodb_1.DynamoDBClient({
                         region: region,
                     });
-                    _i = 0, _d = series.split(',');
-                    _f.label = 1;
+                    _i = 0, _a = series.split(',');
+                    _c.label = 1;
                 case 1:
-                    if (!(_i < _d.length)) return [3 /*break*/, 4];
-                    entry = _d[_i];
-                    _e = entry.split(':'), userID = _e[0], timestamp = _e[1];
+                    if (!(_i < _a.length)) return [3 /*break*/, 4];
+                    entry = _a[_i];
+                    if (entry === "")
+                        return [3 /*break*/, 3];
+                    _b = entry.split(':'), userID = _b[0], timestamp = _b[1];
                     item = {
                         "PartitionKey": { S: wid },
                         "SortKey": { S: timeEpoch + "-" + sourceIp },
@@ -22882,11 +22887,11 @@ function handler(event, context, callback) {
                             Item: item,
                         }))];
                 case 2:
-                    putItemOutput = _f.sent();
+                    putItemOutput = _c.sent();
                     if (debug) {
                         console.info('putItemOutput:', putItemOutput);
                     }
-                    _f.label = 3;
+                    _c.label = 3;
                 case 3:
                     _i++;
                     return [3 /*break*/, 1];
