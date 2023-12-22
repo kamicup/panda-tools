@@ -17,35 +17,38 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
     const time = event.requestContext.time
     const timeEpoch = event.requestContext.timeEpoch
     const sourceIp = event.requestContext.http.sourceIp
-    const userAgent = event.requestContext.http.userAgent
+    // const userAgent = event.requestContext.http.userAgent
 
-    // const wid = event.queryStringParameters?.wid
-    // const sensor = event.queryStringParameters?.sensor
-    // const timing = event.queryStringParameters?.timing
-    // const direct = event.queryStringParameters?.direct
-    //
-    // if (wid) {
-    //     const client = new DynamoDBClient({
-    //         region: region,
-    //     })
-    //     const item : Record<string, AttributeValue> = {
-    //         "PartitionKey": {S: wid},
-    //         "SortKey": {S: timeEpoch + "-" + sourceIp},
-    //         "Time": {S: time}, // for human-readability
-    //         "TimeEpoch": {N: String(timeEpoch)},
-    //         "SourceIp": {S: sourceIp},
-    //         "UserAgent": {S: userAgent},
-    //         "Sensor": sensor ? {S: sensor} : {NULL: true},
-    //         "Timing": timing ? {N: timing} : {NULL: true},
-    //     }
-    //     const putItemOutput = await client.send(new PutItemCommand({
-    //         TableName: tableName,
-    //         Item: item,
-    //     }))
-    //     if (debug) {
-    //         console.info('putItemOutput:', putItemOutput)
-    //     }
-    // }
+    const body = JSON.parse(event.body!)
+    //  body: '{"request":"{\\"WID\\":\\"test_test\\",\\"Sensor\\":\\"1_1_0\\",\\"Series\\":\\"c8f39aa7-963d-400f-9758-1427b2d7db9d:1703225266603,\\"}"}',
+
+    const wid = body.request?.WID as string
+    const sensor = body.request?.Sensor as string
+    const series = body.request?.Series as string
+
+    if (wid) {
+        const client = new DynamoDBClient({
+            region: region,
+        })
+        for (const entry of series.split(',')) {
+            const [userID, timestamp] = entry.split(':')
+            const item : Record<string, AttributeValue> = {
+                "PartitionKey": {S: wid},
+                "SortKey": {S: timeEpoch + "-" + sourceIp},
+                "Received": {S: time}, // for human-readability
+                "Timestamp": {N: timestamp},
+                "UserID": {S: userID},
+                "Sensor": sensor ? {S: sensor} : {NULL: true},
+            }
+            const putItemOutput = await client.send(new PutItemCommand({
+                TableName: tableName,
+                Item: item,
+            }))
+            if (debug) {
+                console.info('putItemOutput:', putItemOutput)
+            }
+        }
+    }
 
     return {
         statusCode: 200,
