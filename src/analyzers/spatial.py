@@ -5,6 +5,7 @@ import sys
 import time
 
 import cv2
+import matplotlib.colors as colors
 import matplotlib.figure as fgr
 import matplotlib.pyplot as plt
 import mpl_toolkits.mplot3d.axes3d as ax3d
@@ -105,7 +106,7 @@ def create_plots(wid: str):
     x, y, z = np.meshgrid(range(sensor_data.shape[0]), range(sensor_data.shape[1]), range(sensor_data.shape[2]))
     fig: fgr.Figure = plt.figure(figsize=fig_size, dpi=output_dpi)
     ax: ax3d.Axes3D = fig.add_subplot(111, projection='3d', aspect='equal')
-    sc = ax.scatter(x, y, z, c=sensor_data, alpha=0.3, cmap='jet')
+    sc = ax.scatter(x, y, z, c=sensor_data, alpha=0.3, cmap='jet')         # norm=colors.Normalize(vmin=0, vmax=16)
     fig.colorbar(sc)
 
     ax.set_title('Number of collision, {} - {}'.format(
