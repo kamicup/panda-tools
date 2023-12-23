@@ -15,13 +15,26 @@ import requests
 output_dir = os.path.abspath(os.path.dirname(__file__) + '/../../output')
 output_size = (800, 600)
 output_dpi = 75
+query_endpoint = 'https://0ivhbivo92.execute-api.ap-northeast-1.amazonaws.com/query'
 
 
-def get_data(wid: str) -> (list, list, list):
-    url = "https://0ivhbivo92.execute-api.ap-northeast-1.amazonaws.com/query?wid=" + wid
+def get_data(wid: str) -> (list, int, int):
+    url = "{}?wid={}".format(query_endpoint, wid)
     r = requests.get(url)
     data = r.json()
     return data['Items'], data['Count'], data['ScannedCount']
+
+
+def get_analyzed_data(wid: str) -> (list, float, float, int, int):
+    url = "{}?analyze=individualSensorCounts&wid={}".format(query_endpoint, wid)
+    r = requests.get(url)
+    data = r.json()
+    return (data['Summary'],
+            data['MaxTimeEpoch'],
+            data['minTimeEpoch'],
+            data['Count'],
+            data['ScannedCount']
+            )
 
 
 def timestamp_range_of(items: list):
@@ -106,7 +119,7 @@ def create_plots(wid: str):
     x, y, z = np.meshgrid(range(sensor_data.shape[0]), range(sensor_data.shape[1]), range(sensor_data.shape[2]))
     fig: fgr.Figure = plt.figure(figsize=fig_size, dpi=output_dpi)
     ax: ax3d.Axes3D = fig.add_subplot(111, projection='3d', aspect='equal')
-    sc = ax.scatter(x, y, z, c=sensor_data, alpha=0.3, cmap='jet')         # norm=colors.Normalize(vmin=0, vmax=16)
+    sc = ax.scatter(x, y, z, c=sensor_data, alpha=0.3, cmap='jet')  # norm=colors.Normalize(vmin=0, vmax=16)
     fig.colorbar(sc)
 
     ax.set_title('Number of collision, {} - {}'.format(

@@ -22899,7 +22899,7 @@ exports.handler = handler;
 function individualSensorCounts(wid) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var input, client, queryCommandOutput, summary;
+        var input, client, queryCommandOutput, minTimeEpoch, maxTimeEpoch, summary;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -22907,7 +22907,7 @@ function individualSensorCounts(wid) {
                         TableName: tableName,
                         KeyConditionExpression: "PartitionKey = :wid",
                         ExpressionAttributeValues: { ":wid": { S: wid } },
-                        ProjectionExpression: "Sensor",
+                        ProjectionExpression: "SortKey, Sensor",
                     };
                     client = new client_dynamodb_1.DynamoDBClient({
                         region: region,
@@ -22919,21 +22919,29 @@ function individualSensorCounts(wid) {
                         console.info('queryCommandOutput.ConsumedCapacity:', queryCommandOutput.ConsumedCapacity);
                         console.info('queryCommandOutput.LastEvaluatedKey:', queryCommandOutput.LastEvaluatedKey);
                     }
+                    minTimeEpoch = Number.MAX_VALUE;
+                    maxTimeEpoch = 0;
                     summary = (_a = queryCommandOutput.Items) === null || _a === void 0 ? void 0 : _a.reduce(function (carry, value, idx, arr) {
-                        var _a;
-                        var sensor = (_a = value.Sensor) === null || _a === void 0 ? void 0 : _a.S;
-                        if (sensor) {
+                        var _a, _b;
+                        var sortKey = (_a = value.SortKey) === null || _a === void 0 ? void 0 : _a.S;
+                        var sensor = (_b = value.Sensor) === null || _b === void 0 ? void 0 : _b.S;
+                        if (sortKey && sensor) {
                             if (sensor in carry) {
-                                carry.sensor = carry.sensor + 1;
+                                carry[sensor] = carry[sensor] + 1;
                             }
                             else {
-                                carry.sensor = 1;
+                                carry[sensor] = 1;
                             }
+                            var timeEpoch = Number.parseInt(sortKey.split('-')[0]);
+                            minTimeEpoch = Math.min(minTimeEpoch, timeEpoch);
+                            maxTimeEpoch = Math.max(maxTimeEpoch, timeEpoch);
                         }
                         return carry;
                     }, {});
                     return [2 /*return*/, jsonResponse(200, {
                             Summary: summary,
+                            MaxTimeEpoch: maxTimeEpoch,
+                            MinTimeEpoch: minTimeEpoch,
                             Count: queryCommandOutput.Count,
                             ScannedCount: queryCommandOutput.ScannedCount,
                         })];
