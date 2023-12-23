@@ -43,6 +43,7 @@ async function individualSensorCounts(wid: string) {
         KeyConditionExpression: "PartitionKey = :wid",
         ExpressionAttributeValues: {":wid": {S: wid}},
         ProjectionExpression: "SortKey, Sensor",
+        ReturnConsumedCapacity: "TOTAL",
     }, undefined)
 
     let minTimeEpoch = Number.MAX_VALUE
@@ -76,6 +77,7 @@ async function simpleQuery(wid: string, sensor: string | undefined, sourceIp: st
         KeyConditionExpression: "PartitionKey = :wid",
         ExpressionAttributeValues: {":wid": {S: wid}},
         ScanIndexForward: false,
+        ReturnConsumedCapacity: "TOTAL",
     }
     const filters: string[] = []
     const eaNames: Record<string, string> = {}
