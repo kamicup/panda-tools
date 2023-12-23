@@ -22977,9 +22977,9 @@ function individualSensorCounter(wid) {
 }
 function individualSensorCounts(wid) {
     return __awaiter(this, void 0, void 0, function () {
-        var client, items, minTimeEpoch, maxTimeEpoch, summary, individualSensorCounts, sensor;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var client, items, minTimeEpoch, maxTimeEpoch, summary, individualSensorCounts, _a, _b, _c, _i, sensor, updateItemOutput;
+        return __generator(this, function (_d) {
+            switch (_d.label) {
                 case 0:
                     client = new client_dynamodb_1.DynamoDBClient({
                         region: region,
@@ -22992,7 +22992,7 @@ function individualSensorCounts(wid) {
                             ReturnConsumedCapacity: "TOTAL",
                         })];
                 case 1:
-                    items = _a.sent();
+                    items = _d.sent();
                     minTimeEpoch = Number.MAX_VALUE;
                     maxTimeEpoch = 0;
                     summary = items.reduce(function (carry, value, idx, arr) {
@@ -23013,16 +23013,33 @@ function individualSensorCounts(wid) {
                         return carry;
                     }, {});
                     individualSensorCounts = [];
-                    for (sensor in summary) {
-                        individualSensorCounts.push({ Sensor: sensor, Count: summary[sensor] });
-                        // ついでに更新
-                        (0, commands_1.atomicCountSet)(tableName, wid, sensor, summary[sensor]);
+                    _a = summary;
+                    _b = [];
+                    for (_c in _a)
+                        _b.push(_c);
+                    _i = 0;
+                    _d.label = 2;
+                case 2:
+                    if (!(_i < _b.length)) return [3 /*break*/, 5];
+                    _c = _b[_i];
+                    if (!(_c in _a)) return [3 /*break*/, 4];
+                    sensor = _c;
+                    individualSensorCounts.push({ Sensor: sensor, Count: summary[sensor] });
+                    return [4 /*yield*/, client.send((0, commands_1.atomicCountSet)(tableName, wid, sensor, summary[sensor]))];
+                case 3:
+                    updateItemOutput = _d.sent();
+                    if (debug) {
+                        console.info('updateItemOutput:', updateItemOutput);
                     }
-                    return [2 /*return*/, jsonResponse(200, {
-                            IndividualSensorCounts: individualSensorCounts,
-                            MaxTimeEpoch: maxTimeEpoch,
-                            MinTimeEpoch: minTimeEpoch,
-                        })];
+                    _d.label = 4;
+                case 4:
+                    _i++;
+                    return [3 /*break*/, 2];
+                case 5: return [2 /*return*/, jsonResponse(200, {
+                        IndividualSensorCounts: individualSensorCounts,
+                        MaxTimeEpoch: maxTimeEpoch,
+                        MinTimeEpoch: minTimeEpoch,
+                    })];
             }
         });
     });
