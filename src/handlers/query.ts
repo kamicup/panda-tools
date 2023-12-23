@@ -19,6 +19,7 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
     }
 
     const analyze = event.queryStringParameters?.analyze
+    const refresh = event.queryStringParameters?.refresh
     const wid = event.queryStringParameters?.wid
     const sensor = event.queryStringParameters?.sensor
     const sourceIp = event.queryStringParameters?.sourceIp
@@ -29,15 +30,18 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
     }
 
     if (analyze === 'individualSensorCounter') {
-        return await individualSensorCounter(wid)
-    } else if (analyze === 'individualSensorCounts') {
-        return await individualSensorCounts(wid)
+    }
+    if (analyze === 'individualSensorCounts') {
+        if (refresh && refresh.length && Number.parseInt(refresh)) {
+            return await individualSensorCounts(wid)
+        }
+        return await individualSensorAtomicCounter(wid)
     } else {
         return await simpleQuery(wid, sensor, sourceIp, userId)
     }
 }
 
-async function individualSensorCounter(wid: string) {
+async function individualSensorAtomicCounter(wid: string) {
     const client = new DynamoDBClient({
         region: region,
     })
@@ -150,7 +154,7 @@ async function simpleQuery(wid: string, sensor: string | undefined, sourceIp: st
 
     const safeItems = items.map((value: Record<string, AttributeValue>) => {
         return {
-            WID: value.PartitionKey?.S,
+            // WID: value.PartitionKey?.S,
             Time: value.Time?.S,
             TimeEpoch: value.TimeEpoch?.N,
             Sensor: value.Sensor?.S,

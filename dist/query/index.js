@@ -22910,38 +22910,40 @@ var key = new Buffer(process.env.CIPHER_KEY, 'base64'); // 32バイトの鍵
 var iv = new Buffer(process.env.CIPHER_IV, 'base64'); // 16バイトの初期化ベクトル
 var debug = process.env.DEBUG === '1';
 function handler(event, context, callback) {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f;
     return __awaiter(this, void 0, void 0, function () {
-        var analyze, wid, sensor, sourceIp, userId;
-        return __generator(this, function (_f) {
-            switch (_f.label) {
+        var analyze, refresh, wid, sensor, sourceIp, userId;
+        return __generator(this, function (_g) {
+            switch (_g.label) {
                 case 0:
                     if (debug) {
                         console.info('event:', event);
                     }
                     analyze = (_a = event.queryStringParameters) === null || _a === void 0 ? void 0 : _a.analyze;
-                    wid = (_b = event.queryStringParameters) === null || _b === void 0 ? void 0 : _b.wid;
-                    sensor = (_c = event.queryStringParameters) === null || _c === void 0 ? void 0 : _c.sensor;
-                    sourceIp = (_d = event.queryStringParameters) === null || _d === void 0 ? void 0 : _d.sourceIp;
-                    userId = (_e = event.queryStringParameters) === null || _e === void 0 ? void 0 : _e.userId;
+                    refresh = (_b = event.queryStringParameters) === null || _b === void 0 ? void 0 : _b.refresh;
+                    wid = (_c = event.queryStringParameters) === null || _c === void 0 ? void 0 : _c.wid;
+                    sensor = (_d = event.queryStringParameters) === null || _d === void 0 ? void 0 : _d.sensor;
+                    sourceIp = (_e = event.queryStringParameters) === null || _e === void 0 ? void 0 : _e.sourceIp;
+                    userId = (_f = event.queryStringParameters) === null || _f === void 0 ? void 0 : _f.userId;
                     if (!wid) {
                         return [2 /*return*/, errorJsonResponse('missing wid')];
                     }
-                    if (!(analyze === 'individualSensorCounter')) return [3 /*break*/, 2];
-                    return [4 /*yield*/, individualSensorCounter(wid)];
-                case 1: return [2 /*return*/, _f.sent()];
-                case 2:
+                    if (analyze === 'individualSensorCounter') {
+                    }
                     if (!(analyze === 'individualSensorCounts')) return [3 /*break*/, 4];
+                    if (!(refresh && refresh.length && Number.parseInt(refresh))) return [3 /*break*/, 2];
                     return [4 /*yield*/, individualSensorCounts(wid)];
-                case 3: return [2 /*return*/, _f.sent()];
+                case 1: return [2 /*return*/, _g.sent()];
+                case 2: return [4 /*yield*/, individualSensorAtomicCounter(wid)];
+                case 3: return [2 /*return*/, _g.sent()];
                 case 4: return [4 /*yield*/, simpleQuery(wid, sensor, sourceIp, userId)];
-                case 5: return [2 /*return*/, _f.sent()];
+                case 5: return [2 /*return*/, _g.sent()];
             }
         });
     });
 }
 exports.handler = handler;
-function individualSensorCounter(wid) {
+function individualSensorAtomicCounter(wid) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
         var client, items, individualSensorCounts, _i, items_1, item, count;
@@ -23091,15 +23093,15 @@ function simpleQuery(wid, sensor, sourceIp, userId) {
                 case 1:
                     items = _a.sent();
                     safeItems = items.map(function (value) {
-                        var _a, _b, _c, _d, _e, _f, _g;
+                        var _a, _b, _c, _d, _e, _f;
                         return {
-                            WID: (_a = value.PartitionKey) === null || _a === void 0 ? void 0 : _a.S,
-                            Time: (_b = value.Time) === null || _b === void 0 ? void 0 : _b.S,
-                            TimeEpoch: (_c = value.TimeEpoch) === null || _c === void 0 ? void 0 : _c.N,
-                            Sensor: (_d = value.Sensor) === null || _d === void 0 ? void 0 : _d.S,
-                            Timing: (_e = value.Timing) === null || _e === void 0 ? void 0 : _e.N,
-                            SourceIp: encrypt((_f = value.SourceIp) === null || _f === void 0 ? void 0 : _f.S),
-                            UserAgentHash: hash((_g = value.UserAgent) === null || _g === void 0 ? void 0 : _g.S),
+                            // WID: value.PartitionKey?.S,
+                            Time: (_a = value.Time) === null || _a === void 0 ? void 0 : _a.S,
+                            TimeEpoch: (_b = value.TimeEpoch) === null || _b === void 0 ? void 0 : _b.N,
+                            Sensor: (_c = value.Sensor) === null || _c === void 0 ? void 0 : _c.S,
+                            Timing: (_d = value.Timing) === null || _d === void 0 ? void 0 : _d.N,
+                            SourceIp: encrypt((_e = value.SourceIp) === null || _e === void 0 ? void 0 : _e.S),
+                            UserAgentHash: hash((_f = value.UserAgent) === null || _f === void 0 ? void 0 : _f.S),
                         };
                     });
                     return [2 /*return*/, jsonResponse(200, { Items: safeItems })];
