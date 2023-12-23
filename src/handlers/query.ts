@@ -64,8 +64,13 @@ async function individualSensorCounts(wid: string) {
         return carry
     }, {})
 
+    const individualSensorCounts = []
+    for (const summaryKey in summary) {
+        individualSensorCounts.push({Sensor: summaryKey, Count: summary[summaryKey]})
+    }
+
     return jsonResponse(200, {
-        Summary: summary,
+        IndividualSensorCounts: individualSensorCounts,
         MaxTimeEpoch: maxTimeEpoch,
         MinTimeEpoch: minTimeEpoch,
     });
