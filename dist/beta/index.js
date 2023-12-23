@@ -22925,7 +22925,7 @@ exports.handler = handler;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.atomicCountUp = void 0;
+exports.atomicCountSet = exports.atomicCountUp = void 0;
 var client_dynamodb_1 = __webpack_require__(830);
 function atomicCountUp(tableName, wid, sensor) {
     return new client_dynamodb_1.UpdateItemCommand({
@@ -22941,6 +22941,20 @@ function atomicCountUp(tableName, wid, sensor) {
     });
 }
 exports.atomicCountUp = atomicCountUp;
+function atomicCountSet(tableName, wid, sensor, count) {
+    return new client_dynamodb_1.UpdateItemCommand({
+        TableName: tableName,
+        ReturnValues: "ALL_NEW",
+        Key: {
+            PartitionKey: { S: 'CNT_' + wid },
+            SortKey: { S: sensor },
+        },
+        UpdateExpression: 'SET #count = :q',
+        ExpressionAttributeNames: { '#count': 'Count' },
+        ExpressionAttributeValues: { ':q': { N: String(count) } },
+    });
+}
+exports.atomicCountSet = atomicCountSet;
 
 
 /***/ }),
