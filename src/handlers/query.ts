@@ -95,7 +95,10 @@ async function individualSensorCounts(wid: string) {
     for (const sensor in summary) {
         individualSensorCounts.push({Sensor: sensor, Count: summary[sensor]})
         // ついでに更新
-        atomicCountSet(tableName, wid, sensor, summary[sensor])
+        const updateItemOutput = await client.send(atomicCountSet(tableName, wid, sensor, summary[sensor]))
+        if (debug) {
+            console.info('updateItemOutput:', updateItemOutput)
+        }
     }
 
     return jsonResponse(200, {
