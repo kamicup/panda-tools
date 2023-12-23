@@ -22898,7 +22898,7 @@ function handler(event, context, callback) {
 exports.handler = handler;
 function individualSensorCounts(wid) {
     return __awaiter(this, void 0, void 0, function () {
-        var client, items, minTimeEpoch, maxTimeEpoch, summary;
+        var client, items, minTimeEpoch, maxTimeEpoch, summary, individualSensorCounts, summaryKey;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -22933,8 +22933,12 @@ function individualSensorCounts(wid) {
                         }
                         return carry;
                     }, {});
+                    individualSensorCounts = [];
+                    for (summaryKey in summary) {
+                        individualSensorCounts.push({ Sensor: summaryKey, Count: summary[summaryKey] });
+                    }
                     return [2 /*return*/, jsonResponse(200, {
-                            Summary: summary,
+                            IndividualSensorCounts: individualSensorCounts,
                             MaxTimeEpoch: maxTimeEpoch,
                             MinTimeEpoch: minTimeEpoch,
                         })];
