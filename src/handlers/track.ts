@@ -30,7 +30,7 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
         const item : Record<string, AttributeValue> = {
             "PartitionKey": {S: wid},
             "SortKey": {S: timeEpoch + "-" + sourceIp},
-            "Time": {S: time}, // for human-readability
+            "Received": {S: time}, // for human-readability
             "TimeEpoch": {N: String(timeEpoch)},
             "SourceIp": {S: sourceIp},
             "UserAgent": {S: userAgent},

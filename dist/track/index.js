@@ -22866,7 +22866,7 @@ function handler(event, context, callback) {
                     item = {
                         "PartitionKey": { S: wid },
                         "SortKey": { S: timeEpoch + "-" + sourceIp },
-                        "Time": { S: time },
+                        "Received": { S: time },
                         "TimeEpoch": { N: String(timeEpoch) },
                         "SourceIp": { S: sourceIp },
                         "UserAgent": { S: userAgent },
