@@ -35,24 +35,19 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
 }
 
 async function individualSensorCounts(wid: string) {
-    const input: QueryCommandInput = {
+    const client = new DynamoDBClient({
+        region: region,
+    })
+    const items = await queryAll(client, {
         TableName: tableName,
         KeyConditionExpression: "PartitionKey = :wid",
         ExpressionAttributeValues: {":wid": {S: wid}},
         ProjectionExpression: "SortKey, Sensor",
-    }
-    const client = new DynamoDBClient({
-        region: region,
-    })
-    const queryCommandOutput = await client.send(new QueryCommand(input))
-    if (debug) {
-        console.info('queryCommandOutput.ConsumedCapacity:', queryCommandOutput.ConsumedCapacity)
-        console.info('queryCommandOutput.LastEvaluatedKey:', queryCommandOutput.LastEvaluatedKey)
-    }
+    }, undefined)
 
     let minTimeEpoch = Number.MAX_VALUE
     let maxTimeEpoch = 0
-    const summary = queryCommandOutput.Items?.reduce((carry: Record<string, number>, value, idx, arr) => {
+    const summary = items.reduce((carry: Record<string, number>, value, idx, arr) => {
         const sortKey = value.SortKey?.S
         const sensor = value.Sensor?.S
         if (sortKey && sensor) {
@@ -72,8 +67,6 @@ async function individualSensorCounts(wid: string) {
         Summary: summary,
         MaxTimeEpoch: maxTimeEpoch,
         MinTimeEpoch: minTimeEpoch,
-        Count: queryCommandOutput.Count,
-        ScannedCount: queryCommandOutput.ScannedCount,
     });
 }
 
@@ -114,19 +107,21 @@ async function simpleQuery(wid: string, sensor: string | undefined, sourceIp: st
     const client = new DynamoDBClient({
         region: region,
     })
-    const queryCommandOutput = await client.send(new QueryCommand(input))
-    if (debug) {
-        console.info('queryCommandOutput.ConsumedCapacity:', queryCommandOutput.ConsumedCapacity)
-        console.info('queryCommandOutput.LastEvaluatedKey:', queryCommandOutput.LastEvaluatedKey)
-    }
+    const items = await queryAll(client, input, undefined)
 
-    const safeItems = queryCommandOutput.Items?.map(privacy)
-
-    return jsonResponse(200, {
-        Items: safeItems,
-        Count: queryCommandOutput.Count,
-        ScannedCount: queryCommandOutput.ScannedCount,
+    const safeItems = items.map((value: Record<string, AttributeValue>) => {
+        return {
+            WID: value.PartitionKey?.S,
+            Time: value.Time?.S,
+            TimeEpoch: value.TimeEpoch?.N,
+            Sensor: value.Sensor?.S,
+            Timing: value.Timing?.N,
+            SourceIp: encrypt(value.SourceIp?.S),
+            UserAgentHash: hash(value.UserAgent?.S),
+        }
     })
+
+    return jsonResponse(200, {Items: safeItems})
 }
 
 const errorJsonResponse = (message: string) => {
@@ -134,22 +129,24 @@ const errorJsonResponse = (message: string) => {
 }
 
 const jsonResponse = (statusCode: number, body: any) => {
-    return {
-        statusCode: statusCode,
-        body: JSON.stringify(body),
-    }
+    return {statusCode: statusCode, body: JSON.stringify(body)}
 }
 
-const privacy = (value: Record<string, AttributeValue>) => {
-    return {
-        WID: value.PartitionKey?.S,
-        Time: value.Time?.S,
-        TimeEpoch: value.TimeEpoch?.N,
-        Sensor: value.Sensor?.S,
-        Timing: value.Timing?.N,
-        SourceIp: encrypt(value.SourceIp?.S),
-        UserAgentHash: hash(value.UserAgent?.S),
+async function queryAll(client: DynamoDBClient, input: QueryCommandInput, exclusiveStartKey: undefined | Record<string, AttributeValue>) {
+    if (exclusiveStartKey) {
+        input.ExclusiveStartKey = exclusiveStartKey
     }
+    const queryCommandOutput = await client.send(new QueryCommand(input))
+    if (debug) {
+        console.info('queryCommandOutput.ConsumedCapacity:', queryCommandOutput.ConsumedCapacity)
+        console.info('queryCommandOutput.LastEvaluatedKey:', queryCommandOutput.LastEvaluatedKey)
+    }
+    const items = queryCommandOutput.Items ?? []
+    if (queryCommandOutput.LastEvaluatedKey) {
+        const nextItems = await queryAll(client, input, queryCommandOutput.LastEvaluatedKey)
+        items.push(...nextItems)
+    }
+    return items
 }
 
 const hash = (source: string | undefined) => {
