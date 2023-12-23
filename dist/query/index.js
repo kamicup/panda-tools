@@ -22910,6 +22910,7 @@ function individualSensorCounts(wid) {
                             KeyConditionExpression: "PartitionKey = :wid",
                             ExpressionAttributeValues: { ":wid": { S: wid } },
                             ProjectionExpression: "SortKey, Sensor",
+                            ReturnConsumedCapacity: "TOTAL",
                         }, undefined)];
                 case 1:
                     items = _a.sent();
@@ -22952,6 +22953,7 @@ function simpleQuery(wid, sensor, sourceIp, userId) {
                         KeyConditionExpression: "PartitionKey = :wid",
                         ExpressionAttributeValues: { ":wid": { S: wid } },
                         ScanIndexForward: false,
+                        ReturnConsumedCapacity: "TOTAL",
                     };
                     filters = [];
                     eaNames = {};
