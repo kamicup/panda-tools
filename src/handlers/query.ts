@@ -39,7 +39,7 @@ async function individualSensorCounts(wid: string) {
         TableName: tableName,
         KeyConditionExpression: "PartitionKey = :wid",
         ExpressionAttributeValues: {":wid": {S: wid}},
-        ProjectionExpression: "Sensor",
+        ProjectionExpression: "SortKey, Sensor",
     }
     const client = new DynamoDBClient({
         region: region,
@@ -50,20 +50,28 @@ async function individualSensorCounts(wid: string) {
         console.info('queryCommandOutput.LastEvaluatedKey:', queryCommandOutput.LastEvaluatedKey)
     }
 
+    let minTimeEpoch = Number.MAX_VALUE
+    let maxTimeEpoch = 0
     const summary = queryCommandOutput.Items?.reduce((carry: Record<string, number>, value, idx, arr) => {
+        const sortKey = value.SortKey?.S
         const sensor = value.Sensor?.S
-        if (sensor) {
+        if (sortKey && sensor) {
             if (sensor in carry) {
-                carry.sensor = carry.sensor + 1
+                carry[sensor] = carry[sensor] + 1
             } else {
-                carry.sensor = 1
+                carry[sensor] = 1
             }
+            const timeEpoch = Number.parseInt(sortKey.split('-')[0])
+            minTimeEpoch = Math.min(minTimeEpoch, timeEpoch)
+            maxTimeEpoch = Math.max(maxTimeEpoch, timeEpoch)
         }
         return carry
     }, {})
 
     return jsonResponse(200, {
         Summary: summary,
+        MaxTimeEpoch: maxTimeEpoch,
+        MinTimeEpoch: minTimeEpoch,
         Count: queryCommandOutput.Count,
         ScannedCount: queryCommandOutput.ScannedCount,
     });
