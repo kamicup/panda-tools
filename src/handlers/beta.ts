@@ -26,6 +26,7 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
     const data = JSON.parse(body.request)
     const wid = data.WID as string
     const sensor = data.Sensor as string
+    const timing = data.Timing as string
     const series = data.Series as string
 
     if (wid) {
@@ -42,6 +43,7 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
                 "Timestamp": {N: timestamp},
                 "UserID": {S: userID},
                 "Sensor": sensor ? {S: sensor} : {NULL: true},
+                "Timing": timing ? {N: timing} : {NULL: true},
             }
             const putItemOutput = await client.send(new PutItemCommand({
                 TableName: tableName,

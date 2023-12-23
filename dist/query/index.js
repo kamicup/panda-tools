@@ -22869,23 +22869,90 @@ var key = new Buffer(process.env.CIPHER_KEY, 'base64'); // 32バイトの鍵
 var iv = new Buffer(process.env.CIPHER_IV, 'base64'); // 16バイトの初期化ベクトル
 var debug = process.env.DEBUG === '1';
 function handler(event, context, callback) {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e;
     return __awaiter(this, void 0, void 0, function () {
-        var wid, sensor, sourceIp, input, filters, eaNames, decrypted, client, queryCommandOutput, safeItems;
-        return __generator(this, function (_e) {
-            switch (_e.label) {
+        var analyze, wid, sensor, sourceIp, userId;
+        return __generator(this, function (_f) {
+            switch (_f.label) {
                 case 0:
                     if (debug) {
                         console.info('event:', event);
                     }
-                    wid = (_a = event.queryStringParameters) === null || _a === void 0 ? void 0 : _a.wid;
-                    sensor = (_b = event.queryStringParameters) === null || _b === void 0 ? void 0 : _b.sensor;
-                    sourceIp = (_c = event.queryStringParameters) === null || _c === void 0 ? void 0 : _c.sourceIp;
-                    if (!wid) return [3 /*break*/, 2];
+                    analyze = (_a = event.queryStringParameters) === null || _a === void 0 ? void 0 : _a.analyze;
+                    wid = (_b = event.queryStringParameters) === null || _b === void 0 ? void 0 : _b.wid;
+                    sensor = (_c = event.queryStringParameters) === null || _c === void 0 ? void 0 : _c.sensor;
+                    sourceIp = (_d = event.queryStringParameters) === null || _d === void 0 ? void 0 : _d.sourceIp;
+                    userId = (_e = event.queryStringParameters) === null || _e === void 0 ? void 0 : _e.userId;
+                    if (!wid) {
+                        return [2 /*return*/, errorJsonResponse('missing wid')];
+                    }
+                    if (!(analyze === 'individualSensorCounts')) return [3 /*break*/, 2];
+                    return [4 /*yield*/, individualSensorCounts(wid)];
+                case 1: return [2 /*return*/, _f.sent()];
+                case 2: return [4 /*yield*/, simpleQuery(wid, sensor, sourceIp, userId)];
+                case 3: return [2 /*return*/, _f.sent()];
+            }
+        });
+    });
+}
+exports.handler = handler;
+function individualSensorCounts(wid) {
+    var _a;
+    return __awaiter(this, void 0, void 0, function () {
+        var input, client, queryCommandOutput, summary;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
                     input = {
                         TableName: tableName,
                         KeyConditionExpression: "PartitionKey = :wid",
-                        ExpressionAttributeValues: { ":wid": { S: wid } }
+                        ExpressionAttributeValues: { ":wid": { S: wid } },
+                        ProjectionExpression: "Sensor",
+                    };
+                    client = new client_dynamodb_1.DynamoDBClient({
+                        region: region,
+                    });
+                    return [4 /*yield*/, client.send(new client_dynamodb_1.QueryCommand(input))];
+                case 1:
+                    queryCommandOutput = _b.sent();
+                    if (debug) {
+                        console.info('queryCommandOutput.ConsumedCapacity:', queryCommandOutput.ConsumedCapacity);
+                        console.info('queryCommandOutput.LastEvaluatedKey:', queryCommandOutput.LastEvaluatedKey);
+                    }
+                    summary = (_a = queryCommandOutput.Items) === null || _a === void 0 ? void 0 : _a.reduce(function (carry, value, idx, arr) {
+                        var _a;
+                        var sensor = (_a = value.Sensor) === null || _a === void 0 ? void 0 : _a.S;
+                        if (sensor) {
+                            if (sensor in carry) {
+                                carry.sensor = carry.sensor + 1;
+                            }
+                            else {
+                                carry.sensor = 1;
+                            }
+                        }
+                        return carry;
+                    }, {});
+                    return [2 /*return*/, jsonResponse(200, {
+                            Summary: summary,
+                            Count: queryCommandOutput.Count,
+                            ScannedCount: queryCommandOutput.ScannedCount,
+                        })];
+            }
+        });
+    });
+}
+function simpleQuery(wid, sensor, sourceIp, userId) {
+    var _a;
+    return __awaiter(this, void 0, void 0, function () {
+        var input, filters, eaNames, decrypted, client, queryCommandOutput, safeItems;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    input = {
+                        TableName: tableName,
+                        KeyConditionExpression: "PartitionKey = :wid",
+                        ExpressionAttributeValues: { ":wid": { S: wid } },
+                        ScanIndexForward: false,
                     };
                     filters = [];
                     eaNames = {};
@@ -22893,6 +22960,11 @@ function handler(event, context, callback) {
                         filters.push("#sensor = :sensor");
                         eaNames["#sensor"] = "Sensor";
                         input.ExpressionAttributeValues[":sensor"] = { S: sensor };
+                    }
+                    if (userId && userId.length) {
+                        filters.push("#userId = :userId");
+                        eaNames["#userId"] = "UserID";
+                        input.ExpressionAttributeValues[":userId"] = { S: userId };
                     }
                     if (sourceIp && sourceIp.length) {
                         try {
@@ -22914,33 +22986,21 @@ function handler(event, context, callback) {
                     });
                     return [4 /*yield*/, client.send(new client_dynamodb_1.QueryCommand(input))];
                 case 1:
-                    queryCommandOutput = _e.sent();
+                    queryCommandOutput = _b.sent();
                     if (debug) {
-                        console.info('queryCommandOutput:', queryCommandOutput);
+                        console.info('queryCommandOutput.ConsumedCapacity:', queryCommandOutput.ConsumedCapacity);
+                        console.info('queryCommandOutput.LastEvaluatedKey:', queryCommandOutput.LastEvaluatedKey);
                     }
-                    safeItems = (_d = queryCommandOutput.Items) === null || _d === void 0 ? void 0 : _d.map(function (value) {
-                        var _a, _b, _c, _d, _e, _f, _g;
-                        return {
-                            WID: (_a = value.PartitionKey) === null || _a === void 0 ? void 0 : _a.S,
-                            Time: (_b = value.Time) === null || _b === void 0 ? void 0 : _b.S,
-                            TimeEpoch: (_c = value.TimeEpoch) === null || _c === void 0 ? void 0 : _c.N,
-                            Sensor: (_d = value.Sensor) === null || _d === void 0 ? void 0 : _d.S,
-                            Timing: (_e = value.Timing) === null || _e === void 0 ? void 0 : _e.N,
-                            SourceIp: encrypt((_f = value.SourceIp) === null || _f === void 0 ? void 0 : _f.S),
-                            UserAgentHash: hash((_g = value.UserAgent) === null || _g === void 0 ? void 0 : _g.S),
-                        };
-                    });
+                    safeItems = (_a = queryCommandOutput.Items) === null || _a === void 0 ? void 0 : _a.map(privacy);
                     return [2 /*return*/, jsonResponse(200, {
                             Items: safeItems,
                             Count: queryCommandOutput.Count,
                             ScannedCount: queryCommandOutput.ScannedCount,
                         })];
-                case 2: return [2 /*return*/, errorJsonResponse('missing wid')];
             }
         });
     });
 }
-exports.handler = handler;
 var errorJsonResponse = function (message) {
     return jsonResponse(400, { error: message });
 };
@@ -22948,6 +23008,18 @@ var jsonResponse = function (statusCode, body) {
     return {
         statusCode: statusCode,
         body: JSON.stringify(body),
+    };
+};
+var privacy = function (value) {
+    var _a, _b, _c, _d, _e, _f, _g;
+    return {
+        WID: (_a = value.PartitionKey) === null || _a === void 0 ? void 0 : _a.S,
+        Time: (_b = value.Time) === null || _b === void 0 ? void 0 : _b.S,
+        TimeEpoch: (_c = value.TimeEpoch) === null || _c === void 0 ? void 0 : _c.N,
+        Sensor: (_d = value.Sensor) === null || _d === void 0 ? void 0 : _d.S,
+        Timing: (_e = value.Timing) === null || _e === void 0 ? void 0 : _e.N,
+        SourceIp: encrypt((_f = value.SourceIp) === null || _f === void 0 ? void 0 : _f.S),
+        UserAgentHash: hash((_g = value.UserAgent) === null || _g === void 0 ? void 0 : _g.S),
     };
 };
 var hash = function (source) {

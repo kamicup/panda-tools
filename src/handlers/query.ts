@@ -1,4 +1,4 @@
-import {DynamoDBClient, QueryCommand, QueryCommandInput} from '@aws-sdk/client-dynamodb'
+import {AttributeValue, DynamoDBClient, QueryCommand, QueryCommandInput} from '@aws-sdk/client-dynamodb'
 import {APIGatewayProxyCallbackV2, APIGatewayProxyEventV2, APIGatewayProxyResultV2, Context} from 'aws-lambda'
 import * as crypto from 'crypto'
 
@@ -17,65 +17,108 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
         console.info('event:', event);
     }
 
+    const analyze = event.queryStringParameters?.analyze
     const wid = event.queryStringParameters?.wid
     const sensor = event.queryStringParameters?.sensor
     const sourceIp = event.queryStringParameters?.sourceIp
+    const userId = event.queryStringParameters?.userId
 
-    if (wid) {
-        const input : QueryCommandInput = {
-            TableName: tableName,
-            KeyConditionExpression: "PartitionKey = :wid",
-            ExpressionAttributeValues: {":wid": {S: wid}}
-        }
-        const filters: string[] = []
-        const eaNames: Record<string, string> = {}
-        if (sensor && sensor.length) {
-            filters.push("#sensor = :sensor")
-            eaNames["#sensor"] = "Sensor"
-            input.ExpressionAttributeValues![":sensor"] = {S: sensor}
-        }
-        if (sourceIp && sourceIp.length) {
-            try {
-                const decrypted = decrypt(sourceIp)
-                filters.push("#sourceIp = :sourceIp")
-                eaNames["#sourceIp"] = "SourceIp"
-                input.ExpressionAttributeValues![":sourceIp"] = {S: decrypted}
-            } catch (e) {
-                return errorJsonResponse('invalid sourceIp')
-            }
-        }
-        if (filters.length) {
-            input.FilterExpression = filters.join(' and ')
-            input.ExpressionAttributeNames = eaNames
-        }
-
-        const client = new DynamoDBClient({
-            region: region,
-        })
-        const queryCommandOutput = await client.send(new QueryCommand(input))
-        if (debug) {
-            console.info('queryCommandOutput:', queryCommandOutput)
-        }
-
-        const safeItems = queryCommandOutput.Items?.map((value) => {
-            return {
-                WID: value.PartitionKey?.S,
-                Time: value.Time?.S,
-                TimeEpoch: value.TimeEpoch?.N,
-                Sensor: value.Sensor?.S,
-                Timing: value.Timing?.N,
-                SourceIp: encrypt(value.SourceIp?.S),
-                UserAgentHash: hash(value.UserAgent?.S),
-            }
-        })
-
-        return jsonResponse(200, {
-            Items: safeItems,
-            Count: queryCommandOutput.Count,
-            ScannedCount: queryCommandOutput.ScannedCount,
-        })
+    if (!wid) {
+        return errorJsonResponse('missing wid')
     }
-    return errorJsonResponse('missing wid')
+
+    if (analyze === 'individualSensorCounts') {
+        return await individualSensorCounts(wid)
+    } else {
+        return await simpleQuery(wid, sensor, sourceIp, userId)
+    }
+}
+
+async function individualSensorCounts(wid: string) {
+    const input: QueryCommandInput = {
+        TableName: tableName,
+        KeyConditionExpression: "PartitionKey = :wid",
+        ExpressionAttributeValues: {":wid": {S: wid}},
+        ProjectionExpression: "Sensor",
+    }
+    const client = new DynamoDBClient({
+        region: region,
+    })
+    const queryCommandOutput = await client.send(new QueryCommand(input))
+    if (debug) {
+        console.info('queryCommandOutput.ConsumedCapacity:', queryCommandOutput.ConsumedCapacity)
+        console.info('queryCommandOutput.LastEvaluatedKey:', queryCommandOutput.LastEvaluatedKey)
+    }
+
+    const summary = queryCommandOutput.Items?.reduce((carry: Record<string, number>, value, idx, arr) => {
+        const sensor = value.Sensor?.S
+        if (sensor) {
+            if (sensor in carry) {
+                carry.sensor = carry.sensor + 1
+            } else {
+                carry.sensor = 1
+            }
+        }
+        return carry
+    }, {})
+
+    return jsonResponse(200, {
+        Summary: summary,
+        Count: queryCommandOutput.Count,
+        ScannedCount: queryCommandOutput.ScannedCount,
+    });
+}
+
+async function simpleQuery(wid: string, sensor: string | undefined, sourceIp: string | undefined, userId: string | undefined) {
+    const input: QueryCommandInput = {
+        TableName: tableName,
+        KeyConditionExpression: "PartitionKey = :wid",
+        ExpressionAttributeValues: {":wid": {S: wid}},
+        ScanIndexForward: false,
+    }
+    const filters: string[] = []
+    const eaNames: Record<string, string> = {}
+    if (sensor && sensor.length) {
+        filters.push("#sensor = :sensor")
+        eaNames["#sensor"] = "Sensor"
+        input.ExpressionAttributeValues![":sensor"] = {S: sensor}
+    }
+    if (userId && userId.length) {
+        filters.push("#userId = :userId")
+        eaNames["#userId"] = "UserID"
+        input.ExpressionAttributeValues![":userId"] = {S: userId}
+    }
+    if (sourceIp && sourceIp.length) {
+        try {
+            const decrypted = decrypt(sourceIp)
+            filters.push("#sourceIp = :sourceIp")
+            eaNames["#sourceIp"] = "SourceIp"
+            input.ExpressionAttributeValues![":sourceIp"] = {S: decrypted}
+        } catch (e) {
+            return errorJsonResponse('invalid sourceIp')
+        }
+    }
+    if (filters.length) {
+        input.FilterExpression = filters.join(' and ')
+        input.ExpressionAttributeNames = eaNames
+    }
+
+    const client = new DynamoDBClient({
+        region: region,
+    })
+    const queryCommandOutput = await client.send(new QueryCommand(input))
+    if (debug) {
+        console.info('queryCommandOutput.ConsumedCapacity:', queryCommandOutput.ConsumedCapacity)
+        console.info('queryCommandOutput.LastEvaluatedKey:', queryCommandOutput.LastEvaluatedKey)
+    }
+
+    const safeItems = queryCommandOutput.Items?.map(privacy)
+
+    return jsonResponse(200, {
+        Items: safeItems,
+        Count: queryCommandOutput.Count,
+        ScannedCount: queryCommandOutput.ScannedCount,
+    })
 }
 
 const errorJsonResponse = (message: string) => {
@@ -89,7 +132,19 @@ const jsonResponse = (statusCode: number, body: any) => {
     }
 }
 
-const hash = (source: string|undefined) => {
+const privacy = (value: Record<string, AttributeValue>) => {
+    return {
+        WID: value.PartitionKey?.S,
+        Time: value.Time?.S,
+        TimeEpoch: value.TimeEpoch?.N,
+        Sensor: value.Sensor?.S,
+        Timing: value.Timing?.N,
+        SourceIp: encrypt(value.SourceIp?.S),
+        UserAgentHash: hash(value.UserAgent?.S),
+    }
+}
+
+const hash = (source: string | undefined) => {
     if (!source) {
         return undefined
     }
@@ -99,7 +154,7 @@ const hash = (source: string|undefined) => {
     return hash.digest('hex')
 }
 
-function encrypt(text: string|undefined) {
+function encrypt(text: string | undefined) {
     if (!text) {
         return undefined
     }

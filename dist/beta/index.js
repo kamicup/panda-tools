@@ -22844,7 +22844,7 @@ var debug = process.env.DEBUG === '1';
 var verify = process.env.VERIFY_TOKEN;
 function handler(event, context, callback) {
     return __awaiter(this, void 0, void 0, function () {
-        var time, timeEpoch, sourceIp, body, data, wid, sensor, series, client, _i, _a, entry, _b, userID, timestamp, item, putItemOutput;
+        var time, timeEpoch, sourceIp, body, data, wid, sensor, timing, series, client, _i, _a, entry, _b, userID, timestamp, item, putItemOutput;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
@@ -22861,6 +22861,7 @@ function handler(event, context, callback) {
                     data = JSON.parse(body.request);
                     wid = data.WID;
                     sensor = data.Sensor;
+                    timing = data.Timing;
                     series = data.Series;
                     if (!wid) return [3 /*break*/, 4];
                     client = new client_dynamodb_1.DynamoDBClient({
@@ -22881,6 +22882,7 @@ function handler(event, context, callback) {
                         "Timestamp": { N: timestamp },
                         "UserID": { S: userID },
                         "Sensor": sensor ? { S: sensor } : { NULL: true },
+                        "Timing": timing ? { N: timing } : { NULL: true },
                     };
                     return [4 /*yield*/, client.send(new client_dynamodb_1.PutItemCommand({
                             TableName: tableName,
