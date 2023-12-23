@@ -1,6 +1,7 @@
 import {AttributeValue, DynamoDBClient, QueryCommand, QueryCommandInput} from '@aws-sdk/client-dynamodb'
 import {APIGatewayProxyCallbackV2, APIGatewayProxyEventV2, APIGatewayProxyResultV2, Context} from 'aws-lambda'
 import * as crypto from 'crypto'
+import {atomicCountSet} from "./lib/commands";
 
 // 環境変数
 const region = process.env.DDB_REGION
@@ -27,11 +28,37 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
         return errorJsonResponse('missing wid')
     }
 
-    if (analyze === 'individualSensorCounts') {
+    if (analyze === 'individualSensorCounter') {
+        return await individualSensorCounter(wid)
+    } else if (analyze === 'individualSensorCounts') {
         return await individualSensorCounts(wid)
     } else {
         return await simpleQuery(wid, sensor, sourceIp, userId)
     }
+}
+
+async function individualSensorCounter(wid: string) {
+    const client = new DynamoDBClient({
+        region: region,
+    })
+    const items = await queryAll(client, {
+        TableName: tableName,
+        KeyConditionExpression: "PartitionKey = :key",
+        ExpressionAttributeValues: {":key": {S: 'CNT_' + wid}},
+        ReturnConsumedCapacity: "TOTAL",
+    })
+
+    const individualSensorCounts = []
+    for (const item of items) {
+        const count = item.Count?.N
+        individualSensorCounts.push({
+            Sensor: item.SortKey?.S,
+            Count: count ? Number.parseInt(count) : undefined,
+        })
+    }
+    return jsonResponse(200, {
+        IndividualSensorCounts: individualSensorCounts,
+    });
 }
 
 async function individualSensorCounts(wid: string) {
@@ -44,7 +71,7 @@ async function individualSensorCounts(wid: string) {
         ExpressionAttributeValues: {":wid": {S: wid}},
         ProjectionExpression: "SortKey, Sensor",
         ReturnConsumedCapacity: "TOTAL",
-    }, undefined)
+    })
 
     let minTimeEpoch = Number.MAX_VALUE
     let maxTimeEpoch = 0
@@ -65,8 +92,10 @@ async function individualSensorCounts(wid: string) {
     }, {})
 
     const individualSensorCounts = []
-    for (const summaryKey in summary) {
-        individualSensorCounts.push({Sensor: summaryKey, Count: summary[summaryKey]})
+    for (const sensor in summary) {
+        individualSensorCounts.push({Sensor: sensor, Count: summary[sensor]})
+        // ついでに更新
+        atomicCountSet(tableName, wid, sensor, summary[sensor])
     }
 
     return jsonResponse(200, {
@@ -139,7 +168,7 @@ const jsonResponse = (statusCode: number, body: any) => {
     return {statusCode: statusCode, body: JSON.stringify(body)}
 }
 
-async function queryAll(client: DynamoDBClient, input: QueryCommandInput, exclusiveStartKey: undefined | Record<string, AttributeValue>) {
+async function queryAll(client: DynamoDBClient, input: QueryCommandInput, exclusiveStartKey: undefined | Record<string, AttributeValue> = undefined) {
     if (exclusiveStartKey) {
         input.ExclusiveStartKey = exclusiveStartKey
     }

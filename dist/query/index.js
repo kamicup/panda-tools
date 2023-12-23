@@ -22793,6 +22793,46 @@ module.exports = toNumber
 
 /***/ }),
 
+/***/ 392:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.atomicCountSet = exports.atomicCountUp = void 0;
+var client_dynamodb_1 = __webpack_require__(830);
+function atomicCountUp(tableName, wid, sensor) {
+    return new client_dynamodb_1.UpdateItemCommand({
+        TableName: tableName,
+        ReturnValues: "ALL_NEW",
+        Key: {
+            PartitionKey: { S: 'CNT_' + wid },
+            SortKey: { S: sensor },
+        },
+        UpdateExpression: 'ADD #count :q',
+        ExpressionAttributeNames: { '#count': 'Count' },
+        ExpressionAttributeValues: { ':q': { N: '1' } },
+    });
+}
+exports.atomicCountUp = atomicCountUp;
+function atomicCountSet(tableName, wid, sensor, count) {
+    return new client_dynamodb_1.UpdateItemCommand({
+        TableName: tableName,
+        ReturnValues: "ALL_NEW",
+        Key: {
+            PartitionKey: { S: 'CNT_' + wid },
+            SortKey: { S: sensor },
+        },
+        UpdateExpression: 'SET #count = :q',
+        ExpressionAttributeNames: { '#count': 'Count' },
+        ExpressionAttributeValues: { ':q': { N: String(count) } },
+    });
+}
+exports.atomicCountSet = atomicCountSet;
+
+
+/***/ }),
+
 /***/ 326:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
@@ -22861,6 +22901,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.handler = void 0;
 var client_dynamodb_1 = __webpack_require__(830);
 var crypto = __importStar(__webpack_require__(663));
+var commands_1 = __webpack_require__(392);
 // 環境変数
 var region = process.env.DDB_REGION;
 var tableName = process.env.DDB_TABLE;
@@ -22886,19 +22927,57 @@ function handler(event, context, callback) {
                     if (!wid) {
                         return [2 /*return*/, errorJsonResponse('missing wid')];
                     }
-                    if (!(analyze === 'individualSensorCounts')) return [3 /*break*/, 2];
-                    return [4 /*yield*/, individualSensorCounts(wid)];
+                    if (!(analyze === 'individualSensorCounter')) return [3 /*break*/, 2];
+                    return [4 /*yield*/, individualSensorCounter(wid)];
                 case 1: return [2 /*return*/, _f.sent()];
-                case 2: return [4 /*yield*/, simpleQuery(wid, sensor, sourceIp, userId)];
+                case 2:
+                    if (!(analyze === 'individualSensorCounts')) return [3 /*break*/, 4];
+                    return [4 /*yield*/, individualSensorCounts(wid)];
                 case 3: return [2 /*return*/, _f.sent()];
+                case 4: return [4 /*yield*/, simpleQuery(wid, sensor, sourceIp, userId)];
+                case 5: return [2 /*return*/, _f.sent()];
             }
         });
     });
 }
 exports.handler = handler;
+function individualSensorCounter(wid) {
+    var _a, _b;
+    return __awaiter(this, void 0, void 0, function () {
+        var client, items, individualSensorCounts, _i, items_1, item, count;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0:
+                    client = new client_dynamodb_1.DynamoDBClient({
+                        region: region,
+                    });
+                    return [4 /*yield*/, queryAll(client, {
+                            TableName: tableName,
+                            KeyConditionExpression: "PartitionKey = :key",
+                            ExpressionAttributeValues: { ":key": { S: 'CNT_' + wid } },
+                            ReturnConsumedCapacity: "TOTAL",
+                        })];
+                case 1:
+                    items = _c.sent();
+                    individualSensorCounts = [];
+                    for (_i = 0, items_1 = items; _i < items_1.length; _i++) {
+                        item = items_1[_i];
+                        count = (_a = item.Count) === null || _a === void 0 ? void 0 : _a.N;
+                        individualSensorCounts.push({
+                            Sensor: (_b = item.SortKey) === null || _b === void 0 ? void 0 : _b.S,
+                            Count: count ? Number.parseInt(count) : undefined,
+                        });
+                    }
+                    return [2 /*return*/, jsonResponse(200, {
+                            IndividualSensorCounts: individualSensorCounts,
+                        })];
+            }
+        });
+    });
+}
 function individualSensorCounts(wid) {
     return __awaiter(this, void 0, void 0, function () {
-        var client, items, minTimeEpoch, maxTimeEpoch, summary, individualSensorCounts, summaryKey;
+        var client, items, minTimeEpoch, maxTimeEpoch, summary, individualSensorCounts, sensor;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -22911,7 +22990,7 @@ function individualSensorCounts(wid) {
                             ExpressionAttributeValues: { ":wid": { S: wid } },
                             ProjectionExpression: "SortKey, Sensor",
                             ReturnConsumedCapacity: "TOTAL",
-                        }, undefined)];
+                        })];
                 case 1:
                     items = _a.sent();
                     minTimeEpoch = Number.MAX_VALUE;
@@ -22934,8 +23013,10 @@ function individualSensorCounts(wid) {
                         return carry;
                     }, {});
                     individualSensorCounts = [];
-                    for (summaryKey in summary) {
-                        individualSensorCounts.push({ Sensor: summaryKey, Count: summary[summaryKey] });
+                    for (sensor in summary) {
+                        individualSensorCounts.push({ Sensor: sensor, Count: summary[sensor] });
+                        // ついでに更新
+                        (0, commands_1.atomicCountSet)(tableName, wid, sensor, summary[sensor]);
                     }
                     return [2 /*return*/, jsonResponse(200, {
                             IndividualSensorCounts: individualSensorCounts,
@@ -23017,6 +23098,7 @@ var jsonResponse = function (statusCode, body) {
 };
 function queryAll(client, input, exclusiveStartKey) {
     var _a;
+    if (exclusiveStartKey === void 0) { exclusiveStartKey = undefined; }
     return __awaiter(this, void 0, void 0, function () {
         var queryCommandOutput, items, nextItems;
         return __generator(this, function (_b) {
