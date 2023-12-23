@@ -22793,6 +22793,32 @@ module.exports = toNumber
 
 /***/ }),
 
+/***/ 392:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.atomicCountUp = void 0;
+var client_dynamodb_1 = __webpack_require__(830);
+function atomicCountUp(tableName, wid, sensor) {
+    return new client_dynamodb_1.UpdateItemCommand({
+        TableName: tableName,
+        ReturnValues: "ALL_NEW",
+        Key: {
+            PartitionKey: { S: 'CNT_' + wid },
+            SortKey: { S: sensor },
+        },
+        UpdateExpression: 'ADD #count :q',
+        ExpressionAttributeNames: { '#count': 'Count' },
+        ExpressionAttributeValues: { ':q': { N: '1' } },
+    });
+}
+exports.atomicCountUp = atomicCountUp;
+
+
+/***/ }),
+
 /***/ 78:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
@@ -22837,6 +22863,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.handler = void 0;
 var client_dynamodb_1 = __webpack_require__(830);
+var commands_1 = __webpack_require__(392);
 // 環境変数
 var region = process.env.DDB_REGION;
 var tableName = process.env.DDB_TABLE;
@@ -22844,7 +22871,7 @@ var debug = process.env.DEBUG === '1';
 function handler(event, context, callback) {
     var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function () {
-        var time, timeEpoch, sourceIp, userAgent, wid, sensor, timing, direct, client, item, putItemOutput;
+        var time, timeEpoch, sourceIp, userAgent, wid, sensor, timing, direct, client, putItemOutput, updateItemOutput;
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0:
@@ -22859,31 +22886,37 @@ function handler(event, context, callback) {
                     sensor = (_b = event.queryStringParameters) === null || _b === void 0 ? void 0 : _b.sensor;
                     timing = (_c = event.queryStringParameters) === null || _c === void 0 ? void 0 : _c.timing;
                     direct = (_d = event.queryStringParameters) === null || _d === void 0 ? void 0 : _d.direct;
-                    if (!wid) return [3 /*break*/, 2];
+                    if (!wid) return [3 /*break*/, 3];
                     client = new client_dynamodb_1.DynamoDBClient({
                         region: region,
                     });
-                    item = {
-                        "PartitionKey": { S: wid },
-                        "SortKey": { S: timeEpoch + "-" + sourceIp },
-                        "Received": { S: time },
-                        "TimeEpoch": { N: String(timeEpoch) },
-                        "SourceIp": { S: sourceIp },
-                        "UserAgent": { S: userAgent },
-                        "Sensor": sensor ? { S: sensor } : { NULL: true },
-                        "Timing": timing ? { N: timing } : { NULL: true },
-                    };
                     return [4 /*yield*/, client.send(new client_dynamodb_1.PutItemCommand({
                             TableName: tableName,
-                            Item: item,
+                            Item: {
+                                "PartitionKey": { S: wid },
+                                "SortKey": { S: timeEpoch + "-" + sourceIp },
+                                "Received": { S: time },
+                                "TimeEpoch": { N: String(timeEpoch) },
+                                "SourceIp": { S: sourceIp },
+                                "UserAgent": { S: userAgent },
+                                "Sensor": sensor ? { S: sensor } : { NULL: true },
+                                "Timing": timing ? { N: timing } : { NULL: true },
+                            },
                         }))];
                 case 1:
                     putItemOutput = _e.sent();
                     if (debug) {
                         console.info('putItemOutput:', putItemOutput);
                     }
-                    _e.label = 2;
+                    if (!sensor) return [3 /*break*/, 3];
+                    return [4 /*yield*/, client.send((0, commands_1.atomicCountUp)(tableName, wid, sensor))];
                 case 2:
+                    updateItemOutput = _e.sent();
+                    if (debug) {
+                        console.info('updateItemOutput:', updateItemOutput);
+                    }
+                    _e.label = 3;
+                case 3:
                     if (direct) {
                         return [2 /*return*/, {
                                 statusCode: 200,

@@ -1,5 +1,6 @@
-import {AttributeValue, DynamoDBClient, PutItemCommand} from '@aws-sdk/client-dynamodb'
+import {DynamoDBClient, PutItemCommand} from '@aws-sdk/client-dynamodb'
 import {APIGatewayProxyCallbackV2, APIGatewayProxyEventV2, APIGatewayProxyResultV2, Context} from 'aws-lambda'
+import {atomicCountUp} from "./lib/commands";
 
 // 環境変数
 const region = process.env.DDB_REGION
@@ -16,8 +17,6 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
 
     const time = event.requestContext.time
     const timeEpoch = event.requestContext.timeEpoch
-    const sourceIp = event.requestContext.http.sourceIp
-    // const userAgent = event.requestContext.http.userAgent
 
     const body = JSON.parse(event.body!)
     if (debug) {
@@ -36,21 +35,26 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
         for (const entry of series.split(',')) {
             if (entry === "") continue
             const [userID, timestamp] = entry.split(':')
-            const item : Record<string, AttributeValue> = {
-                "PartitionKey": {S: wid},
-                "SortKey": {S: timeEpoch + "-" + sourceIp},
-                "Received": {S: time}, // for human-readability
-                "Timestamp": {N: timestamp},
-                "UserID": {S: userID},
-                "Sensor": sensor ? {S: sensor} : {NULL: true},
-                "Timing": timing ? {N: timing} : {NULL: true},
-            }
             const putItemOutput = await client.send(new PutItemCommand({
                 TableName: tableName,
-                Item: item,
+                Item: {
+                    "PartitionKey": {S: wid},
+                    "SortKey": {S: timeEpoch + "-" + userID},
+                    "Received": {S: time}, // for human-readability
+                    "Timestamp": {N: timestamp},
+                    "UserID": {S: userID},
+                    "Sensor": sensor ? {S: sensor} : {NULL: true},
+                    "Timing": timing ? {N: timing} : {NULL: true},
+                },
             }))
             if (debug) {
                 console.info('putItemOutput:', putItemOutput)
+            }
+            if (sensor) {
+                const updateItemOutput = await client.send(atomicCountUp(tableName, wid, sensor))
+                if (debug) {
+                    console.info('updateItemOutput:', updateItemOutput)
+                }
             }
         }
     }

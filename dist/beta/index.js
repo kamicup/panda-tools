@@ -22837,6 +22837,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.handler = void 0;
 var client_dynamodb_1 = __webpack_require__(830);
+var commands_1 = __webpack_require__(392);
 // 環境変数
 var region = process.env.DDB_REGION;
 var tableName = process.env.DDB_TABLE;
@@ -22844,7 +22845,7 @@ var debug = process.env.DEBUG === '1';
 var verify = process.env.VERIFY_TOKEN;
 function handler(event, context, callback) {
     return __awaiter(this, void 0, void 0, function () {
-        var time, timeEpoch, sourceIp, body, data, wid, sensor, timing, series, client, _i, _a, entry, _b, userID, timestamp, item, putItemOutput;
+        var time, timeEpoch, body, data, wid, sensor, timing, series, client, _i, _a, entry, _b, userID, timestamp, putItemOutput, updateItemOutput;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
@@ -22853,7 +22854,6 @@ function handler(event, context, callback) {
                     }
                     time = event.requestContext.time;
                     timeEpoch = event.requestContext.timeEpoch;
-                    sourceIp = event.requestContext.http.sourceIp;
                     body = JSON.parse(event.body);
                     if (debug) {
                         console.info('body:', body);
@@ -22863,41 +22863,47 @@ function handler(event, context, callback) {
                     sensor = data.Sensor;
                     timing = data.Timing;
                     series = data.Series;
-                    if (!wid) return [3 /*break*/, 4];
+                    if (!wid) return [3 /*break*/, 5];
                     client = new client_dynamodb_1.DynamoDBClient({
                         region: region,
                     });
                     _i = 0, _a = series.split(',');
                     _c.label = 1;
                 case 1:
-                    if (!(_i < _a.length)) return [3 /*break*/, 4];
+                    if (!(_i < _a.length)) return [3 /*break*/, 5];
                     entry = _a[_i];
                     if (entry === "")
-                        return [3 /*break*/, 3];
+                        return [3 /*break*/, 4];
                     _b = entry.split(':'), userID = _b[0], timestamp = _b[1];
-                    item = {
-                        "PartitionKey": { S: wid },
-                        "SortKey": { S: timeEpoch + "-" + sourceIp },
-                        "Received": { S: time },
-                        "Timestamp": { N: timestamp },
-                        "UserID": { S: userID },
-                        "Sensor": sensor ? { S: sensor } : { NULL: true },
-                        "Timing": timing ? { N: timing } : { NULL: true },
-                    };
                     return [4 /*yield*/, client.send(new client_dynamodb_1.PutItemCommand({
                             TableName: tableName,
-                            Item: item,
+                            Item: {
+                                "PartitionKey": { S: wid },
+                                "SortKey": { S: timeEpoch + "-" + userID },
+                                "Received": { S: time },
+                                "Timestamp": { N: timestamp },
+                                "UserID": { S: userID },
+                                "Sensor": sensor ? { S: sensor } : { NULL: true },
+                                "Timing": timing ? { N: timing } : { NULL: true },
+                            },
                         }))];
                 case 2:
                     putItemOutput = _c.sent();
                     if (debug) {
                         console.info('putItemOutput:', putItemOutput);
                     }
-                    _c.label = 3;
+                    if (!sensor) return [3 /*break*/, 4];
+                    return [4 /*yield*/, client.send((0, commands_1.atomicCountUp)(tableName, wid, sensor))];
                 case 3:
+                    updateItemOutput = _c.sent();
+                    if (debug) {
+                        console.info('updateItemOutput:', updateItemOutput);
+                    }
+                    _c.label = 4;
+                case 4:
                     _i++;
                     return [3 /*break*/, 1];
-                case 4: return [2 /*return*/, {
+                case 5: return [2 /*return*/, {
                         statusCode: 200,
                         body: JSON.stringify({
                             verify: verify,
@@ -22909,6 +22915,32 @@ function handler(event, context, callback) {
     });
 }
 exports.handler = handler;
+
+
+/***/ }),
+
+/***/ 392:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.atomicCountUp = void 0;
+var client_dynamodb_1 = __webpack_require__(830);
+function atomicCountUp(tableName, wid, sensor) {
+    return new client_dynamodb_1.UpdateItemCommand({
+        TableName: tableName,
+        ReturnValues: "ALL_NEW",
+        Key: {
+            PartitionKey: { S: 'CNT_' + wid },
+            SortKey: { S: sensor },
+        },
+        UpdateExpression: 'ADD #count :q',
+        ExpressionAttributeNames: { '#count': 'Count' },
+        ExpressionAttributeValues: { ':q': { N: '1' } },
+    });
+}
+exports.atomicCountUp = atomicCountUp;
 
 
 /***/ }),
