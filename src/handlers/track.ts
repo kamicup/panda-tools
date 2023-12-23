@@ -1,5 +1,6 @@
-import {AttributeValue, DynamoDBClient, PutItemCommand} from '@aws-sdk/client-dynamodb'
+import {DynamoDBClient, PutItemCommand} from '@aws-sdk/client-dynamodb'
 import {APIGatewayProxyCallbackV2, APIGatewayProxyEventV2, APIGatewayProxyResultV2, Context} from 'aws-lambda'
+import {atomicCountUp} from "./lib/commands";
 
 // 環境変数
 const region = process.env.DDB_REGION
@@ -27,22 +28,27 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
         const client = new DynamoDBClient({
             region: region,
         })
-        const item : Record<string, AttributeValue> = {
-            "PartitionKey": {S: wid},
-            "SortKey": {S: timeEpoch + "-" + sourceIp},
-            "Received": {S: time}, // for human-readability
-            "TimeEpoch": {N: String(timeEpoch)},
-            "SourceIp": {S: sourceIp},
-            "UserAgent": {S: userAgent},
-            "Sensor": sensor ? {S: sensor} : {NULL: true},
-            "Timing": timing ? {N: timing} : {NULL: true},
-        }
         const putItemOutput = await client.send(new PutItemCommand({
             TableName: tableName,
-            Item: item,
+            Item: {
+                "PartitionKey": {S: wid},
+                "SortKey": {S: timeEpoch + "-" + sourceIp},
+                "Received": {S: time}, // for human-readability
+                "TimeEpoch": {N: String(timeEpoch)},
+                "SourceIp": {S: sourceIp},
+                "UserAgent": {S: userAgent},
+                "Sensor": sensor ? {S: sensor} : {NULL: true},
+                "Timing": timing ? {N: timing} : {NULL: true},
+            },
         }))
         if (debug) {
             console.info('putItemOutput:', putItemOutput)
+        }
+        if (sensor) {
+            const updateItemOutput = await client.send(atomicCountUp(tableName, wid, sensor))
+            if (debug) {
+                console.info('updateItemOutput:', updateItemOutput)
+            }
         }
     }
 
