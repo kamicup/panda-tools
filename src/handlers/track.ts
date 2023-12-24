@@ -1,6 +1,6 @@
 import {DynamoDBClient, PutItemCommand} from '@aws-sdk/client-dynamodb'
 import {APIGatewayProxyCallbackV2, APIGatewayProxyEventV2, APIGatewayProxyResultV2, Context} from 'aws-lambda'
-import {atomicCountUp} from "./lib/commands";
+import {atomicCountUp} from "./lib/counter";
 
 // 環境変数
 const region = process.env.DDB_REGION
