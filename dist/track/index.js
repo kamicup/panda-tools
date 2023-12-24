@@ -22793,7 +22793,7 @@ module.exports = toNumber
 
 /***/ }),
 
-/***/ 392:
+/***/ 457:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -22877,7 +22877,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.handler = void 0;
 var client_dynamodb_1 = __webpack_require__(830);
-var commands_1 = __webpack_require__(392);
+var counter_1 = __webpack_require__(457);
 // 環境変数
 var region = process.env.DDB_REGION;
 var tableName = process.env.DDB_TABLE;
@@ -22923,7 +22923,7 @@ function handler(event, context, callback) {
                         console.info('putItemOutput:', putItemOutput);
                     }
                     if (!sensor) return [3 /*break*/, 3];
-                    return [4 /*yield*/, client.send((0, commands_1.atomicCountUp)(tableName, wid, sensor))];
+                    return [4 /*yield*/, client.send((0, counter_1.atomicCountUp)(tableName, wid, sensor))];
                 case 2:
                     updateItemOutput = _e.sent();
                     if (debug) {

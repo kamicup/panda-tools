@@ -15,7 +15,7 @@
     "postresource-HiP": "base64 -i resources/h264-hip.mp4",
     "postresource-CBP": "base64 -i resources/h264-cbp.mp4",
     "preresource": "rm resources/* && convert -size 48x48 xc:red resources/48x48.png",
-    "resource":  "npm run resource-HiP && npm run resource-CBP",
+    "resource": "npm run resource-HiP && npm run resource-CBP",
     "postresource": "rm resources/48x48.png"
   },
   "repository": {
@@ -33,9 +33,11 @@
     "@aws-sdk/client-dynamodb": "^3.398.0",
     "@aws-sdk/lib-dynamodb": "^3.398.0",
     "@types/aws-lambda": "^8.10.97",
+    "@types/totp-generator": "^0.0.8",
     "@types/webpack": "^5.28.0",
     "nodemon": "^2.0.16",
     "terser-webpack-plugin": "^5.3.7",
+    "totp-generator": "^0.0.14",
     "ts-loader": "^9.3.0",
     "ts-node": "^10.7.0",
     "typescript": "^4.6.4",

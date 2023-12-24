@@ -1,7 +1,7 @@
 import {AttributeValue, DynamoDBClient, QueryCommand, QueryCommandInput} from '@aws-sdk/client-dynamodb'
 import {APIGatewayProxyCallbackV2, APIGatewayProxyEventV2, APIGatewayProxyResultV2, Context} from 'aws-lambda'
 import * as crypto from 'crypto'
-import {atomicCountSet} from "./lib/commands";
+import {atomicCountSet} from "./lib/counter";
 
 // 環境変数
 const region = process.env.DDB_REGION
@@ -29,10 +29,8 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
         return errorJsonResponse('missing wid')
     }
 
-    if (analyze === 'individualSensorCounter') {
-    }
     if (analyze === 'individualSensorCounts') {
-        if (refresh && refresh.length && Number.parseInt(refresh)) {
+        if (refresh && refresh.length && refresh == '1') {
             return await individualSensorCounts(wid)
         }
         return await individualSensorAtomicCounter(wid)

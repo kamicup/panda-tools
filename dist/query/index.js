@@ -22793,7 +22793,7 @@ module.exports = toNumber
 
 /***/ }),
 
-/***/ 392:
+/***/ 457:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -22901,7 +22901,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.handler = void 0;
 var client_dynamodb_1 = __webpack_require__(830);
 var crypto = __importStar(__webpack_require__(663));
-var commands_1 = __webpack_require__(392);
+var counter_1 = __webpack_require__(457);
 // 環境変数
 var region = process.env.DDB_REGION;
 var tableName = process.env.DDB_TABLE;
@@ -22928,10 +22928,8 @@ function handler(event, context, callback) {
                     if (!wid) {
                         return [2 /*return*/, errorJsonResponse('missing wid')];
                     }
-                    if (analyze === 'individualSensorCounter') {
-                    }
                     if (!(analyze === 'individualSensorCounts')) return [3 /*break*/, 4];
-                    if (!(refresh && refresh.length && Number.parseInt(refresh))) return [3 /*break*/, 2];
+                    if (!(refresh && refresh.length && refresh == '1')) return [3 /*break*/, 2];
                     return [4 /*yield*/, individualSensorCounts(wid)];
                 case 1: return [2 /*return*/, _g.sent()];
                 case 2: return [4 /*yield*/, individualSensorAtomicCounter(wid)];
@@ -23027,7 +23025,7 @@ function individualSensorCounts(wid) {
                     if (!(_c in _a)) return [3 /*break*/, 4];
                     sensor = _c;
                     individualSensorCounts.push({ Sensor: sensor, Count: summary[sensor] });
-                    return [4 /*yield*/, client.send((0, commands_1.atomicCountSet)(tableName, wid, sensor, summary[sensor]))];
+                    return [4 /*yield*/, client.send((0, counter_1.atomicCountSet)(tableName, wid, sensor, summary[sensor]))];
                 case 3:
                     updateItemOutput = _d.sent();
                     if (debug) {
