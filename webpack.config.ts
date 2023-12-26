@@ -8,22 +8,23 @@ const config: Configuration = {
     entry: {
         track: {
             import: './src/handlers/track.ts',
-            filename: "track/index.js",
+            filename: "track/index.mjs",
         },
         query: {
             import: './src/handlers/query.ts',
-            filename: "query/index.js",
+            filename: "query/index.mjs",
         },
         beta: {
             import: './src/handlers/beta.ts',
-            filename: "beta/index.js",
+            filename: "beta/index.mjs",
         },
     },
     output: {
         path: `${__dirname}/dist`,
-        libraryTarget: 'commonjs2',
+        libraryTarget: 'module', //commonjs2
+        chunkFormat: 'module',
     },
-    externals: ['aws-sdk', 'node-commonjs', 'node-fetch'],
+    externals: ['aws-sdk'],
     module: {
         rules: [
             { test: /\.ts$/, use: [ { loader: 'ts-loader' } ]}
@@ -37,7 +38,10 @@ const config: Configuration = {
             resourceRegExp: /^cardinal$/,
             contextRegExp: /./,
         }),
-    ]
+    ],
+    experiments: {
+        outputModule: true,
+    },
 };
 
 export default config;
