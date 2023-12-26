@@ -23,7 +23,7 @@ const config: Configuration = {
         path: `${__dirname}/dist`,
         libraryTarget: 'commonjs2',
     },
-    externals: ['aws-sdk'],
+    externals: ['aws-sdk', 'node-commonjs', 'node-fetch'],
     module: {
         rules: [
             { test: /\.ts$/, use: [ { loader: 'ts-loader' } ]}
