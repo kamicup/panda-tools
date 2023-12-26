@@ -1,7 +1,7 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 446:
+/***/ 1446:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -10,9 +10,9 @@
 // SPDX-License-Identifier: Apache-2.0
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AwsCrc32 = void 0;
-var tslib_1 = __webpack_require__(717);
-var util_1 = __webpack_require__(658);
-var index_1 = __webpack_require__(79);
+var tslib_1 = __webpack_require__(2717);
+var util_1 = __webpack_require__(7658);
+var index_1 = __webpack_require__(4079);
 var AwsCrc32 = /** @class */ (function () {
     function AwsCrc32() {
         this.crc32 = new index_1.Crc32();
@@ -39,15 +39,15 @@ exports.AwsCrc32 = AwsCrc32;
 
 /***/ }),
 
-/***/ 79:
+/***/ 4079:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AwsCrc32 = exports.Crc32 = exports.crc32 = void 0;
-var tslib_1 = __webpack_require__(717);
-var util_1 = __webpack_require__(658);
+var tslib_1 = __webpack_require__(2717);
+var util_1 = __webpack_require__(7658);
 function crc32(data) {
     return new Crc32().update(data).digest();
 }
@@ -148,13 +148,13 @@ var a_lookUpTable = [
     0xB40BBE37, 0xC30C8EA1, 0x5A05DF1B, 0x2D02EF8D,
 ];
 var lookupTable = (0, util_1.uint32ArrayFrom)(a_lookUpTable);
-var aws_crc32_1 = __webpack_require__(446);
+var aws_crc32_1 = __webpack_require__(1446);
 Object.defineProperty(exports, "AwsCrc32", ({ enumerable: true, get: function () { return aws_crc32_1.AwsCrc32; } }));
 //# sourceMappingURL=index.js.map
 
 /***/ }),
 
-/***/ 717:
+/***/ 2717:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -406,7 +406,7 @@ function __classPrivateFieldSet(receiver, privateMap, value) {
 
 /***/ }),
 
-/***/ 106:
+/***/ 1106:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -415,7 +415,7 @@ function __classPrivateFieldSet(receiver, privateMap, value) {
 // SPDX-License-Identifier: Apache-2.0
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.convertToBuffer = void 0;
-var util_utf8_browser_1 = __webpack_require__(84);
+var util_utf8_browser_1 = __webpack_require__(2084);
 // Quick polyfill
 var fromUtf8 = typeof Buffer !== "undefined" && Buffer.from
     ? function (input) { return Buffer.from(input, "utf8"); }
@@ -437,7 +437,7 @@ exports.convertToBuffer = convertToBuffer;
 
 /***/ }),
 
-/***/ 658:
+/***/ 7658:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -446,19 +446,19 @@ exports.convertToBuffer = convertToBuffer;
 // SPDX-License-Identifier: Apache-2.0
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.uint32ArrayFrom = exports.numToUint8 = exports.isEmptyData = exports.convertToBuffer = void 0;
-var convertToBuffer_1 = __webpack_require__(106);
+var convertToBuffer_1 = __webpack_require__(1106);
 Object.defineProperty(exports, "convertToBuffer", ({ enumerable: true, get: function () { return convertToBuffer_1.convertToBuffer; } }));
-var isEmptyData_1 = __webpack_require__(304);
+var isEmptyData_1 = __webpack_require__(4304);
 Object.defineProperty(exports, "isEmptyData", ({ enumerable: true, get: function () { return isEmptyData_1.isEmptyData; } }));
-var numToUint8_1 = __webpack_require__(174);
+var numToUint8_1 = __webpack_require__(2174);
 Object.defineProperty(exports, "numToUint8", ({ enumerable: true, get: function () { return numToUint8_1.numToUint8; } }));
-var uint32ArrayFrom_1 = __webpack_require__(558);
+var uint32ArrayFrom_1 = __webpack_require__(1558);
 Object.defineProperty(exports, "uint32ArrayFrom", ({ enumerable: true, get: function () { return uint32ArrayFrom_1.uint32ArrayFrom; } }));
 //# sourceMappingURL=index.js.map
 
 /***/ }),
 
-/***/ 304:
+/***/ 4304:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -478,7 +478,7 @@ exports.isEmptyData = isEmptyData;
 
 /***/ }),
 
-/***/ 174:
+/***/ 2174:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -500,7 +500,7 @@ exports.numToUint8 = numToUint8;
 
 /***/ }),
 
-/***/ 558:
+/***/ 1558:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -527,7 +527,7 @@ exports.uint32ArrayFrom = uint32ArrayFrom;
 
 /***/ }),
 
-/***/ 830:
+/***/ 5217:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1117,7 +1117,7 @@ const getEndpointDiscoveryOptionalPlugin = (pluginConfig, middlewareConfig) => (
 });
 
 // EXTERNAL MODULE: ./node_modules/mnemonist/lru-cache.js
-var lru_cache = __webpack_require__(675);
+var lru_cache = __webpack_require__(6675);
 var lru_cache_default = /*#__PURE__*/__webpack_require__.n(lru_cache);
 ;// CONCATENATED MODULE: ./node_modules/@aws-sdk/endpoint-cache/dist-es/EndpointCache.js
 
@@ -1361,7 +1361,7 @@ const memoize = (provider, isExpired, requiresRefresh) => {
 };
 
 // EXTERNAL MODULE: ./node_modules/@aws-crypto/crc32/build/index.js
-var build = __webpack_require__(79);
+var build = __webpack_require__(4079);
 ;// CONCATENATED MODULE: ./node_modules/@smithy/util-hex-encoding/dist-es/index.js
 const SHORT_TO_HEX = {};
 const HEX_TO_SHORT = {};
@@ -1821,8 +1821,8 @@ const normalizeProvider_normalizeProvider = (input) => {
 const isArrayBuffer = (arg) => (typeof ArrayBuffer === "function" && arg instanceof ArrayBuffer) ||
     Object.prototype.toString.call(arg) === "[object ArrayBuffer]";
 
-;// CONCATENATED MODULE: external "buffer"
-const external_buffer_namespaceObject = require("buffer");
+// EXTERNAL MODULE: external "buffer"
+var external_buffer_ = __webpack_require__(4300);
 ;// CONCATENATED MODULE: ./node_modules/@smithy/util-buffer-from/dist-es/index.js
 
 
@@ -1830,13 +1830,13 @@ const dist_es_fromArrayBuffer = (input, offset = 0, length = input.byteLength - 
     if (!isArrayBuffer(input)) {
         throw new TypeError(`The "input" argument must be ArrayBuffer. Received type ${typeof input} (${input})`);
     }
-    return external_buffer_namespaceObject.Buffer.from(input, offset, length);
+    return external_buffer_.Buffer.from(input, offset, length);
 };
 const fromString = (input, encoding) => {
     if (typeof input !== "string") {
         throw new TypeError(`The "input" argument must be of type string. Received type ${typeof input} (${input})`);
     }
-    return encoding ? external_buffer_namespaceObject.Buffer.from(input, encoding) : external_buffer_namespaceObject.Buffer.from(input);
+    return encoding ? external_buffer_.Buffer.from(input, encoding) : external_buffer_.Buffer.from(input);
 };
 
 ;// CONCATENATED MODULE: ./node_modules/@smithy/util-utf8/dist-es/fromUtf8.js
@@ -3536,8 +3536,8 @@ const fromEnv = (envVarSelector) => async () => {
 
 ;// CONCATENATED MODULE: external "os"
 const external_os_namespaceObject = require("os");
-;// CONCATENATED MODULE: external "path"
-const external_path_namespaceObject = require("path");
+// EXTERNAL MODULE: external "path"
+var external_path_ = __webpack_require__(1017);
 ;// CONCATENATED MODULE: ./node_modules/@smithy/shared-ini-file-loader/dist-es/getHomeDir.js
 
 
@@ -3549,7 +3549,7 @@ const getHomeDirCacheKey = () => {
     return "DEFAULT";
 };
 const getHomeDir = () => {
-    const { HOME, USERPROFILE, HOMEPATH, HOMEDRIVE = `C:${external_path_namespaceObject.sep}` } = process.env;
+    const { HOME, USERPROFILE, HOMEPATH, HOMEDRIVE = `C:${external_path_.sep}` } = process.env;
     if (HOME)
         return HOME;
     if (USERPROFILE)
@@ -3568,7 +3568,7 @@ const DEFAULT_PROFILE = "default";
 const getProfileName = (init) => init.profile || process.env[ENV_PROFILE] || DEFAULT_PROFILE;
 
 // EXTERNAL MODULE: external "crypto"
-var external_crypto_ = __webpack_require__(663);
+var external_crypto_ = __webpack_require__(6113);
 var external_crypto_default = /*#__PURE__*/__webpack_require__.n(external_crypto_);
 ;// CONCATENATED MODULE: ./node_modules/@smithy/shared-ini-file-loader/dist-es/getSSOTokenFilepath.js
 
@@ -3577,15 +3577,15 @@ var external_crypto_default = /*#__PURE__*/__webpack_require__.n(external_crypto
 const getSSOTokenFilepath = (id) => {
     const hasher = (0,external_crypto_.createHash)("sha1");
     const cacheName = hasher.update(id).digest("hex");
-    return (0,external_path_namespaceObject.join)(getHomeDir(), ".aws", "sso", "cache", `${cacheName}.json`);
+    return (0,external_path_.join)(getHomeDir(), ".aws", "sso", "cache", `${cacheName}.json`);
 };
 
-;// CONCATENATED MODULE: external "fs"
-const external_fs_namespaceObject = require("fs");
+// EXTERNAL MODULE: external "fs"
+var external_fs_ = __webpack_require__(7147);
 ;// CONCATENATED MODULE: ./node_modules/@smithy/shared-ini-file-loader/dist-es/getSSOTokenFromFile.js
 
 
-const { readFile } = external_fs_namespaceObject.promises;
+const { readFile } = external_fs_.promises;
 const getSSOTokenFromFile = async (id) => {
     const ssoTokenFilepath = getSSOTokenFilepath(id);
     const ssoTokenText = await readFile(ssoTokenFilepath, "utf8");
@@ -3616,13 +3616,13 @@ const getConfigData = (data) => Object.entries(data)
 
 
 const ENV_CONFIG_PATH = "AWS_CONFIG_FILE";
-const getConfigFilepath = () => process.env[ENV_CONFIG_PATH] || (0,external_path_namespaceObject.join)(getHomeDir(), ".aws", "config");
+const getConfigFilepath = () => process.env[ENV_CONFIG_PATH] || (0,external_path_.join)(getHomeDir(), ".aws", "config");
 
 ;// CONCATENATED MODULE: ./node_modules/@smithy/shared-ini-file-loader/dist-es/getCredentialsFilepath.js
 
 
 const ENV_CREDENTIALS_PATH = "AWS_SHARED_CREDENTIALS_FILE";
-const getCredentialsFilepath = () => process.env[ENV_CREDENTIALS_PATH] || (0,external_path_namespaceObject.join)(getHomeDir(), ".aws", "credentials");
+const getCredentialsFilepath = () => process.env[ENV_CREDENTIALS_PATH] || (0,external_path_.join)(getHomeDir(), ".aws", "credentials");
 
 ;// CONCATENATED MODULE: ./node_modules/@smithy/shared-ini-file-loader/dist-es/parseIni.js
 
@@ -3680,7 +3680,7 @@ const parseIni = (iniData) => {
 
 ;// CONCATENATED MODULE: ./node_modules/@smithy/shared-ini-file-loader/dist-es/slurpFile.js
 
-const { readFile: slurpFile_readFile } = external_fs_namespaceObject.promises;
+const { readFile: slurpFile_readFile } = external_fs_.promises;
 const filePromisesHash = {};
 const slurpFile = (path, options) => {
     if (!filePromisesHash[path] || options?.ignoreCache) {
@@ -5030,8 +5030,8 @@ class Uint8ArrayBlobAdapter extends Uint8Array {
     }
 }
 
-;// CONCATENATED MODULE: external "stream"
-const external_stream_namespaceObject = require("stream");
+// EXTERNAL MODULE: external "stream"
+var external_stream_ = __webpack_require__(2781);
 ;// CONCATENATED MODULE: ./node_modules/@smithy/util-stream/dist-es/getAwsChunkedEncodingStream.js
 
 const getAwsChunkedEncodingStream = (readableStream, options) => {
@@ -5083,10 +5083,10 @@ function dist_es_buildQueryString(query) {
     return parts.join("&");
 }
 
-;// CONCATENATED MODULE: external "http"
-const external_http_namespaceObject = require("http");
-;// CONCATENATED MODULE: external "https"
-const external_https_namespaceObject = require("https");
+// EXTERNAL MODULE: external "http"
+var external_http_ = __webpack_require__(3685);
+// EXTERNAL MODULE: external "https"
+var external_https_ = __webpack_require__(5687);
 ;// CONCATENATED MODULE: ./node_modules/@smithy/node-http-handler/dist-es/constants.js
 const constants_NODEJS_TIMEOUT_ERROR_CODES = ["ECONNRESET", "EPIPE", "ETIMEDOUT"];
 
@@ -5173,7 +5173,7 @@ async function write_request_body_writeRequestBody(httpRequest, request, maxCont
     }
 }
 function writeBody(httpRequest, body) {
-    if (body instanceof external_stream_namespaceObject.Readable) {
+    if (body instanceof external_stream_.Readable) {
         body.pipe(httpRequest);
     }
     else if (body) {
@@ -5225,8 +5225,8 @@ class NodeHttpHandler {
         return {
             connectionTimeout,
             requestTimeout: requestTimeout ?? socketTimeout,
-            httpAgent: httpAgent || new external_http_namespaceObject.Agent({ keepAlive, maxSockets }),
-            httpsAgent: httpsAgent || new external_https_namespaceObject.Agent({ keepAlive, maxSockets }),
+            httpAgent: httpAgent || new external_http_.Agent({ keepAlive, maxSockets }),
+            httpsAgent: httpsAgent || new external_https_.Agent({ keepAlive, maxSockets }),
         };
     }
     destroy() {
@@ -5280,7 +5280,7 @@ class NodeHttpHandler {
                 agent: isSSL ? this.config.httpsAgent : this.config.httpAgent,
                 auth,
             };
-            const requestFunc = isSSL ? external_https_namespaceObject.request : external_http_namespaceObject.request;
+            const requestFunc = isSSL ? external_https_.request : external_http_.request;
             const req = requestFunc(nodeHttpsOptions, (res) => {
                 const httpResponse = new httpResponse_HttpResponse({
                     statusCode: res.statusCode || -1,
@@ -5619,7 +5619,7 @@ class NodeHttp2Handler {
 
 ;// CONCATENATED MODULE: ./node_modules/@smithy/node-http-handler/dist-es/stream-collector/collector.js
 
-class Collector extends external_stream_namespaceObject.Writable {
+class Collector extends external_stream_.Writable {
     constructor() {
         super(...arguments);
         this.bufferedBytes = [];
@@ -5651,8 +5651,8 @@ const stream_collector_streamCollector = (stream) => new Promise((resolve, rejec
 
 
 
-;// CONCATENATED MODULE: external "util"
-const external_util_namespaceObject = require("util");
+// EXTERNAL MODULE: external "util"
+var external_util_ = __webpack_require__(3837);
 ;// CONCATENATED MODULE: ./node_modules/@smithy/util-stream/dist-es/sdk-stream-mixin.js
 
 
@@ -6618,7 +6618,7 @@ function v4_v4(options, buf, offset) {
 /* harmony default export */ const esm_node_v4 = (v4_v4);
 ;// CONCATENATED MODULE: ./node_modules/@smithy/middleware-retry/dist-es/isStreamingPayload/isStreamingPayload.js
 
-const isStreamingPayload = (request) => request?.body instanceof external_stream_namespaceObject.Readable ||
+const isStreamingPayload = (request) => request?.body instanceof external_stream_.Readable ||
     (typeof ReadableStream !== "undefined" && request?.body instanceof ReadableStream);
 
 ;// CONCATENATED MODULE: ./node_modules/@smithy/middleware-retry/dist-es/util.js
@@ -12063,7 +12063,7 @@ const GetSessionTokenResponseFilterSensitiveLog = (obj) => ({
 });
 
 // EXTERNAL MODULE: ./node_modules/fast-xml-parser/src/fxp.js
-var fxp = __webpack_require__(932);
+var fxp = __webpack_require__(6932);
 ;// CONCATENATED MODULE: ./node_modules/@aws-sdk/client-sts/dist-es/protocols/Aws_query.js
 
 
@@ -13308,15 +13308,15 @@ const fromEnv_fromEnv = () => async () => {
     throw new CredentialsProviderError("Unable to find environment variable credentials.");
 };
 
-;// CONCATENATED MODULE: external "url"
-const external_url_namespaceObject = require("url");
+// EXTERNAL MODULE: external "url"
+var external_url_ = __webpack_require__(7310);
 ;// CONCATENATED MODULE: ./node_modules/@smithy/credential-provider-imds/dist-es/remoteProvider/httpRequest.js
 
 
 
 function httpRequest(options) {
     return new Promise((resolve, reject) => {
-        const req = (0,external_http_namespaceObject.request)({
+        const req = (0,external_http_.request)({
             method: "GET",
             ...options,
             hostname: options.hostname?.replace(/^\[(.+)\]$/, "$1"),
@@ -13340,7 +13340,7 @@ function httpRequest(options) {
                 chunks.push(chunk);
             });
             res.on("end", () => {
-                resolve(external_buffer_namespaceObject.Buffer.concat(chunks));
+                resolve(external_buffer_.Buffer.concat(chunks));
                 req.destroy();
             });
         });
@@ -13427,7 +13427,7 @@ const getCmdsUri = async () => {
         };
     }
     if (process.env[ENV_CMDS_FULL_URI]) {
-        const parsed = (0,external_url_namespaceObject.parse)(process.env[ENV_CMDS_FULL_URI]);
+        const parsed = (0,external_url_.parse)(process.env[ENV_CMDS_FULL_URI]);
         if (!parsed.hostname || !(parsed.hostname in GREENGRASS_HOSTS)) {
             throw new CredentialsProviderError(`${parsed.hostname} is not a valid container metadata service hostname`, false);
         }
@@ -13800,7 +13800,7 @@ const resolveProcessCredentials = async (profileName, profiles) => {
     if (profiles[profileName]) {
         const credentialProcess = profile["credential_process"];
         if (credentialProcess !== undefined) {
-            const execPromise = (0,external_util_namespaceObject.promisify)(external_child_process_namespaceObject.exec);
+            const execPromise = (0,external_util_.promisify)(external_child_process_namespaceObject.exec);
             try {
                 const { stdout } = await execPromise(credentialProcess);
                 let data;
@@ -13945,7 +13945,7 @@ class Hash {
     }
 }
 function castSourceData(toCast, encoding) {
-    if (external_buffer_namespaceObject.Buffer.isBuffer(toCast)) {
+    if (external_buffer_.Buffer.isBuffer(toCast)) {
         return toCast;
     }
     if (typeof toCast === "string") {
@@ -13976,10 +13976,10 @@ const calculateBodyLength = (body) => {
         return body.end + 1 - body.start;
     }
     else if (typeof body.path === "string" || Buffer.isBuffer(body.path)) {
-        return (0,external_fs_namespaceObject.lstatSync)(body.path).size;
+        return (0,external_fs_.lstatSync)(body.path).size;
     }
     else if (typeof body.fd === "number") {
-        return (0,external_fs_namespaceObject.fstatSync)(body.fd).size;
+        return (0,external_fs_.fstatSync)(body.fd).size;
     }
     throw new Error(`Body Length computation failed for ${body}`);
 };
@@ -15829,7 +15829,7 @@ const validateTokenKey = (key, value, forRefresh = false) => {
 ;// CONCATENATED MODULE: ./node_modules/@aws-sdk/token-providers/dist-es/writeSSOTokenToFile.js
 
 
-const { writeFile } = external_fs_namespaceObject.promises;
+const { writeFile } = external_fs_.promises;
 const writeSSOTokenToFile = (id, ssoToken) => {
     const tokenFilepath = getSSOTokenFilepath(id);
     const tokenString = JSON.stringify(ssoToken, null, 2);
@@ -16105,7 +16105,7 @@ const fromTokenFile = (init = {}) => async () => {
     }
     return fromWebToken({
         ...init,
-        webIdentityToken: (0,external_fs_namespaceObject.readFileSync)(webIdentityTokenFile, { encoding: "ascii" }),
+        webIdentityToken: (0,external_fs_.readFileSync)(webIdentityTokenFile, { encoding: "ascii" }),
         roleArn,
         roleSessionName,
     })();
@@ -19620,7 +19620,7 @@ const waitUntilTableNotExists = async (params, input) => {
 
 /***/ }),
 
-/***/ 84:
+/***/ 2084:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -19694,15 +19694,15 @@ const dist_es_toUtf8 = (input) => typeof TextDecoder === "function" ? whatwgEnco
 
 /***/ }),
 
-/***/ 932:
+/***/ 6932:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const validator = __webpack_require__(501);
-const XMLParser = __webpack_require__(844);
-const XMLBuilder = __webpack_require__(192);
+const validator = __webpack_require__(8501);
+const XMLParser = __webpack_require__(8844);
+const XMLBuilder = __webpack_require__(1192);
 
 module.exports = {
   XMLParser: XMLParser,
@@ -19712,7 +19712,7 @@ module.exports = {
 
 /***/ }),
 
-/***/ 849:
+/***/ 7849:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -19792,13 +19792,13 @@ exports.nameRegexp = nameRegexp;
 
 /***/ }),
 
-/***/ 501:
+/***/ 8501:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
-const util = __webpack_require__(849);
+const util = __webpack_require__(7849);
 
 const defaultOptions = {
   allowBooleanAttributes: false, //A tag can have attributes without any value
@@ -20223,13 +20223,13 @@ function getPositionFromMatch(match) {
 
 /***/ }),
 
-/***/ 192:
+/***/ 1192:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 //parse Empty Node as self closing node
-const buildFromOrderedJs = __webpack_require__(592);
+const buildFromOrderedJs = __webpack_require__(2592);
 
 const defaultOptions = {
   attributeNamePrefix: '@_',
@@ -20490,7 +20490,7 @@ module.exports = Builder;
 
 /***/ }),
 
-/***/ 592:
+/***/ 2592:
 /***/ ((module) => {
 
 const EOL = "\n";
@@ -20628,10 +20628,10 @@ module.exports = toXml;
 
 /***/ }),
 
-/***/ 780:
+/***/ 4780:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-const util = __webpack_require__(849);
+const util = __webpack_require__(7849);
 
 //TODO: handle comments
 function readDocType(xmlData, i){
@@ -20787,7 +20787,7 @@ module.exports = readDocType;
 
 /***/ }),
 
-/***/ 745:
+/***/ 6745:
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -20841,17 +20841,17 @@ exports.defaultOptions = defaultOptions;
 
 /***/ }),
 
-/***/ 96:
+/***/ 1078:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 ///@ts-check
 
-const util = __webpack_require__(849);
-const xmlNode = __webpack_require__(311);
-const readDocType = __webpack_require__(780);
-const toNumber = __webpack_require__(153);
+const util = __webpack_require__(7849);
+const xmlNode = __webpack_require__(6311);
+const readDocType = __webpack_require__(4780);
+const toNumber = __webpack_require__(4153);
 
 const regx =
   '<((!\\[CDATA\\[([\\s\\S]*?)(]]>))|((NAME:)?(NAME))([^>]*)>|((\\/)(NAME)\\s*>))([^<]*)'
@@ -21437,13 +21437,13 @@ module.exports = OrderedObjParser;
 
 /***/ }),
 
-/***/ 844:
+/***/ 8844:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-const { buildOptions} = __webpack_require__(745);
-const OrderedObjParser = __webpack_require__(96);
-const { prettify} = __webpack_require__(997);
-const validator = __webpack_require__(501);
+const { buildOptions} = __webpack_require__(6745);
+const OrderedObjParser = __webpack_require__(1078);
+const { prettify} = __webpack_require__(6997);
+const validator = __webpack_require__(8501);
 
 class XMLParser{
     
@@ -21501,7 +21501,7 @@ module.exports = XMLParser;
 
 /***/ }),
 
-/***/ 997:
+/***/ 6997:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -21622,7 +21622,7 @@ exports.prettify = prettify;
 
 /***/ }),
 
-/***/ 311:
+/***/ 6311:
 /***/ ((module) => {
 
 "use strict";
@@ -21654,7 +21654,7 @@ module.exports = XmlNode;
 
 /***/ }),
 
-/***/ 675:
+/***/ 6675:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 /**
@@ -21674,9 +21674,9 @@ module.exports = XmlNode;
  * thing down. What's more, pointers are not the things taking most space in
  * memory.
  */
-var Iterator = __webpack_require__(993),
+var Iterator = __webpack_require__(4993),
     forEach = __webpack_require__(113),
-    typed = __webpack_require__(801),
+    typed = __webpack_require__(3801),
     iterables = __webpack_require__(650);
 
 /**
@@ -22105,7 +22105,7 @@ module.exports = LRUCache;
  */
 var forEach = __webpack_require__(113);
 
-var typed = __webpack_require__(801);
+var typed = __webpack_require__(3801);
 
 /**
  * Function used to determine whether the given object supports array-like
@@ -22194,7 +22194,7 @@ exports.toArrayWithIndices = toArrayWithIndices;
 
 /***/ }),
 
-/***/ 801:
+/***/ 3801:
 /***/ ((__unused_webpack_module, exports) => {
 
 /**
@@ -22551,7 +22551,7 @@ module.exports = forEach;
 
 /***/ }),
 
-/***/ 993:
+/***/ 4993:
 /***/ ((module) => {
 
 /**
@@ -22662,7 +22662,7 @@ module.exports = Iterator;
 
 /***/ }),
 
-/***/ 153:
+/***/ 4153:
 /***/ ((module) => {
 
 const hexRegex = /^[-+]?0x[a-fA-F0-9]+$/;
@@ -22793,14 +22793,14 @@ module.exports = toNumber
 
 /***/ }),
 
-/***/ 457:
+/***/ 2457:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.atomicCountSet = exports.atomicCountUp = void 0;
-var client_dynamodb_1 = __webpack_require__(830);
+var client_dynamodb_1 = __webpack_require__(5217);
 function atomicCountUp(tableName, wid, sensor) {
     return new client_dynamodb_1.UpdateItemCommand({
         TableName: tableName,
@@ -22833,7 +22833,7 @@ exports.atomicCountSet = atomicCountSet;
 
 /***/ }),
 
-/***/ 78:
+/***/ 6078:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -22876,8 +22876,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.handler = void 0;
-var client_dynamodb_1 = __webpack_require__(830);
-var counter_1 = __webpack_require__(457);
+var client_dynamodb_1 = __webpack_require__(5217);
+var counter_1 = __webpack_require__(2457);
 // 環境変数
 var region = process.env.DDB_REGION;
 var tableName = process.env.DDB_TABLE;
@@ -22967,11 +22967,75 @@ var b64mp4 = function () {
 
 /***/ }),
 
-/***/ 663:
+/***/ 4300:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("buffer");
+
+/***/ }),
+
+/***/ 6113:
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("crypto");
+
+/***/ }),
+
+/***/ 7147:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("fs");
+
+/***/ }),
+
+/***/ 3685:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("http");
+
+/***/ }),
+
+/***/ 5687:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("https");
+
+/***/ }),
+
+/***/ 1017:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("path");
+
+/***/ }),
+
+/***/ 2781:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("stream");
+
+/***/ }),
+
+/***/ 7310:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("url");
+
+/***/ }),
+
+/***/ 3837:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("util");
 
 /***/ })
 
@@ -23047,7 +23111,7 @@ module.exports = require("crypto");
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __webpack_require__(78);
+/******/ 	var __webpack_exports__ = __webpack_require__(6078);
 /******/ 	module.exports = __webpack_exports__;
 /******/ 	
 /******/ })()
