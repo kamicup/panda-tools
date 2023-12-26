@@ -21,11 +21,8 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
     if ('cmd' in data && data.cmd === 'totp') {
         return pandaToolsTotp(event, data)
     }
-    if ('cmd' in data && data.cmd === 'imageLoader') {
-        return pandaToolsImageLoader(event, data)
-    }
     if ('cmd' in data && data.cmd === 'imagePanel') {
-        return pandaToolsImagePanel(event, data)
+        return await pandaToolsImagePanel(event, data)
     }
     return await pandaToolsTracker(event, data)
 }
