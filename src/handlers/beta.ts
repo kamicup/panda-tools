@@ -25,7 +25,7 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
         return pandaToolsImageLoader(event, data)
     }
     if ('cmd' in data && data.cmd === 'imagePanel') {
-        return pandaToolsImagePanel(event, data)
+        return await pandaToolsImagePanel(event, data)
     }
     return await pandaToolsTracker(event, data)
 }

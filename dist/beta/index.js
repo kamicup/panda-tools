@@ -56249,11 +56249,11 @@ function handler(event, context, callback) {
                     if ('cmd' in data && data.cmd === 'imageLoader') {
                         return [2 /*return*/, (0, pandaToolsImageLoader_1.default)(event, data)];
                     }
-                    if ('cmd' in data && data.cmd === 'imagePanel') {
-                        return [2 /*return*/, (0, pandaToolsImagePanel_1.default)(event, data)];
-                    }
-                    return [4 /*yield*/, (0, pandaToolsTracker_1.default)(event, data)];
+                    if (!('cmd' in data && data.cmd === 'imagePanel')) return [3 /*break*/, 2];
+                    return [4 /*yield*/, (0, pandaToolsImagePanel_1.default)(event, data)];
                 case 1: return [2 /*return*/, _a.sent()];
+                case 2: return [4 /*yield*/, (0, pandaToolsTracker_1.default)(event, data)];
+                case 3: return [2 /*return*/, _a.sent()];
             }
         });
     });
@@ -56390,6 +56390,9 @@ function pandaToolsImagePanel(event, data) {
                         arrSet(b, i + 2);
                     });
                     b64 = Buffer.from(arr).toString("base64");
+                    if (env_1.debug) {
+                        console.info('b64:', b64);
+                    }
                     return [2 /*return*/, (0, env_1.callExternalResponse)(200, b64)];
             }
         });

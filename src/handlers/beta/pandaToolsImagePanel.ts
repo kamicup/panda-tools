@@ -1,5 +1,5 @@
 import {APIGatewayProxyEventV2} from "aws-lambda";
-import {callExternalResponse} from "./lib/env";
+import {callExternalResponse, debug} from "./lib/env";
 import Jimp from "jimp";
 
 export default async function pandaToolsImagePanel(event: APIGatewayProxyEventV2, data: any) {
@@ -30,5 +30,10 @@ export default async function pandaToolsImagePanel(event: APIGatewayProxyEventV2
         arrSet(b, i+2)
     });
     const b64 = Buffer.from(arr).toString("base64");
+
+    if (debug) {
+        console.info('b64:', b64)
+    }
+
     return callExternalResponse(200, b64);
 }
