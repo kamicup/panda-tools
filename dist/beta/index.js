@@ -56367,12 +56367,8 @@ function pandaToolsImagePanel(event, data) {
                     arr = new Uint8Array(22 * 22 * 3 / 2);
                     arrSet = function (uint8, i) {
                         var v = uint8 / 255 * 15;
-                        if (i % 2) {
-                            arr[i / 2] |= v;
-                        }
-                        else {
-                            arr[i / 2] |= v << 4;
-                        }
+                        var idx = Math.floor(i / 2);
+                        arr[idx] |= (i % 2) ? v : v << 4;
                     };
                     return [4 /*yield*/, jimp_1.default.read('https://assets.st-note.com/production/uploads/images/86872191/profile_9fe8e505a6b16e6b1c38b047f66485dd.png?width=104&height=104&dpr=2&crop=1:1,smart')];
                 case 1:
@@ -56392,6 +56388,8 @@ function pandaToolsImagePanel(event, data) {
                     b64 = Buffer.from(arr).toString("base64");
                     if (env_1.debug) {
                         console.info('b64:', b64);
+                        //2023-12-26T03:51:26.957Z	93cc1ec0-c2cf-401b-8d56-0fede898b171	INFO
+                        // b64: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADQANAA0ADQANAA0ADQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADQANAA0ADQANAA0ADQANAAAAAAIEAgQCBAAAAAAAAAAAAAAAAAAAAAAADQANAA0ADQANAA0ADQANAQYCBAIEAgQCBAIEAgQCBAAAAAAAAAAAAAAAAAANAA0ADQANAA0ADQANAQYCBAIEAgQCBAIEAgQCBAIEAAAAAAAAAAAAAAAAAA0ADQANAA0AAAAAAAACBAIEAgQCBAIEAgQCBAIEAgQAAAAAAAAAAAAAAAAADQANAA0ADQAAAAAAAAIEAgQCBAIEAgQCBAIEAgQCBAAAAAAAAAAAAAAAAAANAA0ADQANAA0ADQANAQYCBAIEAgQCBAIEAgQCBAIEAAAAAAAAAAAAAAAAAA0ADQANAA0ADQANAA0ADQEGAgQCBAIEAgQCBAIEAgQAAAAAAAAAAAAAAAAAAAANAA0ADQANAA0ADQANAA0AAAAAAgQCBAIEAAAAAAAAAAAAAAAAAAAAAAAAAAAADQANAA0ADQANAA0ADQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
                     }
                     return [2 /*return*/, (0, env_1.callExternalResponse)(200, b64)];
             }
