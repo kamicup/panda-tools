@@ -35,6 +35,8 @@
     "@types/aws-lambda": "^8.10.97",
     "@types/totp-generator": "^0.0.8",
     "@types/webpack": "^5.28.0",
+    "encoding": "^0.1.13",
+    "jimp": "^0.22.10",
     "nodemon": "^2.0.16",
     "terser-webpack-plugin": "^5.3.7",
     "totp-generator": "^0.0.14",
