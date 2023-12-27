@@ -56227,7 +56227,6 @@ exports.handler = void 0;
 var pandaToolsTracker_1 = __importDefault(__webpack_require__(354));
 var env_1 = __webpack_require__(3567);
 var pandaToolsTotp_1 = __importDefault(__webpack_require__(1225));
-var pandaToolsImageLoader_1 = __importDefault(__webpack_require__(1892));
 var pandaToolsImagePanel_1 = __importDefault(__webpack_require__(469));
 function handler(event, context, callback) {
     return __awaiter(this, void 0, void 0, function () {
@@ -56245,9 +56244,6 @@ function handler(event, context, callback) {
                     data = JSON.parse(body.request);
                     if ('cmd' in data && data.cmd === 'totp') {
                         return [2 /*return*/, (0, pandaToolsTotp_1.default)(event, data)];
-                    }
-                    if ('cmd' in data && data.cmd === 'imageLoader') {
-                        return [2 /*return*/, (0, pandaToolsImageLoader_1.default)(event, data)];
                     }
                     if (!('cmd' in data && data.cmd === 'imagePanel')) return [3 /*break*/, 2];
                     return [4 /*yield*/, (0, pandaToolsImagePanel_1.default)(event, data)];
@@ -56289,22 +56285,6 @@ function callExternalResponse(statusCode, response) {
     };
 }
 exports.callExternalResponse = callExternalResponse;
-
-
-/***/ }),
-
-/***/ 1892:
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-var env_1 = __webpack_require__(3567);
-function pandaToolsImageLoader(event, data) {
-    var url = data.arg;
-    return (0, env_1.callExternalResponse)(200, '');
-}
-exports["default"] = pandaToolsImageLoader;
 
 
 /***/ }),
@@ -56358,22 +56338,31 @@ var env_1 = __webpack_require__(3567);
 var jimp_1 = __importDefault(__webpack_require__(5118));
 function pandaToolsImagePanel(event, data) {
     return __awaiter(this, void 0, void 0, function () {
-        var arg, arr, arrSet, image, b64;
+        var LENGTH, arg, url, arr, arrSet, image, b64;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    arg = data.arg //{url: argUrl, x: pos.x, y: pos.y},
+                    LENGTH = 22;
+                    arg = data.arg //{url: argUrl},
                     ;
-                    arr = new Uint8Array(22 * 22 * 3 / 2);
+                    if (env_1.debug) {
+                        console.info('arg.url:', arg.url);
+                    }
+                    url = arg.url;
+                    if (!url || url === 'http://') {
+                        url = 'https://assets.st-note.com/production/uploads/images/86872191/profile_9fe8e505a6b16e6b1c38b047f66485dd.png?width=104&height=104&dpr=2&crop=1:1,smart';
+                    }
+                    arr = new Uint8Array(LENGTH * LENGTH * 3 / 2);
                     arrSet = function (uint8, i) {
                         var v = Math.floor(uint8 / 255 * 15);
                         var idx = Math.floor(i / 2);
                         arr[idx] |= (i % 2) ? v : v << 4;
                     };
-                    return [4 /*yield*/, jimp_1.default.read('https://assets.st-note.com/production/uploads/images/86872191/profile_9fe8e505a6b16e6b1c38b047f66485dd.png?width=104&height=104&dpr=2&crop=1:1,smart')];
+                    return [4 /*yield*/, jimp_1.default.read(url)];
                 case 1:
                     image = _a.sent();
-                    image.resize(22, 22).scan(0, 0, 22, 22, function (x, y, i) {
+                    image.resize(LENGTH, LENGTH, jimp_1.default.RESIZE_HERMITE)
+                        .scan(0, 0, LENGTH, LENGTH, function (x, y, i) {
                         // x, y is the position of this pixel on the image
                         // idx is the position start position of this rgba tuple in the bitmap Buffer
                         // this is the image
@@ -56381,7 +56370,7 @@ function pandaToolsImagePanel(event, data) {
                         var g = this.bitmap.data[i + 1];
                         var b = this.bitmap.data[i + 2];
                         var a = this.bitmap.data[i + 3];
-                        var p = (x + 22 * y) * 3;
+                        var p = (x + LENGTH * y) * 3;
                         arrSet(r, p);
                         arrSet(g, p + 1);
                         arrSet(b, p + 2);
@@ -56389,10 +56378,6 @@ function pandaToolsImagePanel(event, data) {
                     b64 = Buffer.from(arr).toString("base64");
                     if (env_1.debug) {
                         console.info('b64:', b64);
-                        //2023-12-26T03:51:26.957Z	93cc1ec0-c2cf-401b-8d56-0fede898b171	INFO
-                        // b64: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADQANAA0ADQANAA0ADQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADQANAA0ADQANAA0ADQANAAAAAAIEAgQCBAAAAAAAAAAAAAAAAAAAAAAADQANAA0ADQANAA0ADQANAQYCBAIEAgQCBAIEAgQCBAAAAAAAAAAAAAAAAAANAA0ADQANAA0ADQANAQYCBAIEAgQCBAIEAgQCBAIEAAAAAAAAAAAAAAAAAA0ADQANAA0AAAAAAAACBAIEAgQCBAIEAgQCBAIEAgQAAAAAAAAAAAAAAAAADQANAA0ADQAAAAAAAAIEAgQCBAIEAgQCBAIEAgQCBAAAAAAAAAAAAAAAAAANAA0ADQANAA0ADQANAQYCBAIEAgQCBAIEAgQCBAIEAAAAAAAAAAAAAAAAAA0ADQANAA0ADQANAA0ADQEGAgQCBAIEAgQCBAIEAgQAAAAAAAAAAAAAAAAAAAANAA0ADQANAA0ADQANAA0AAAAAAgQCBAIEAAAAAAAAAAAAAAAAAAAAAAAAAAAADQANAA0ADQANAA0ADQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-                        //2023-12-26T04:42:49.531Z	ebd11aba-354e-4520-94b7-4004df9cdf74	INFO
-                        // b64: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAnQCdAJ0AnQCdAJ0AnQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAnQCdAJ0AnQCdAJ0AnQCdAAAAAAI0AjQCNAAAAAAAAAAAAAAAAAAAAAAAnQCdAJ0AnQCdAJ0AnQCdAUYCNAI0AjQCNAI0AjQCNAAAAAAAAAAAAAAAAACdAJ0AnQCdAJ0AnQCdAUYCNAI0AjQCNAI0AjQCNAI0AAAAAAAAAAAAAAAAAJ0AnQCdAJ0AAAAAAAACNAI0AjQCNAI0AjQCNAI0AjQAAAAAAAAAAAAAAAAAnQCdAJ0AnQAAAAAAAAI0AjQCNAI0AjQCNAI0AjQCNAAAAAAAAAAAAAAAAACdAJ0AnQCdAJ0AnQCdAUYCNAI0AjQCNAI0AjQCNAI0AAAAAAAAAAAAAAAAAJ0AnQCdAJ0AnQCdAJ0AnQFGAjQCNAI0AjQCNAI0AjQAAAAAAAAAAAAAAAAAAACdAJ0AnQCdAJ0AnQCdAJ0AAAAAAjQCNAI0AAAAAAAAAAAAAAAAAAAAAAAAAAAAnQCdAJ0AnQCdAJ0AnQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
                     }
                     return [2 /*return*/, (0, env_1.callExternalResponse)(200, b64)];
             }

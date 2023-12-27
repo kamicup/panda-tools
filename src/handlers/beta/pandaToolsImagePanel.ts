@@ -5,8 +5,14 @@ import Jimp from "jimp";
 export default async function pandaToolsImagePanel(event: APIGatewayProxyEventV2, data: any) {
     const LENGTH = 22
 
-    const arg = data.arg //{url: argUrl, x: pos.x, y: pos.y},
-    const url = arg.url ?? 'https://assets.st-note.com/production/uploads/images/86872191/profile_9fe8e505a6b16e6b1c38b047f66485dd.png?width=104&height=104&dpr=2&crop=1:1,smart'
+    const arg = data.arg //{url: argUrl},
+    if (debug) {
+        console.info('arg.url:', arg.url)
+    }
+    let url = arg.url
+    if (!url || url === 'http://') {
+        url = 'https://assets.st-note.com/production/uploads/images/86872191/profile_9fe8e505a6b16e6b1c38b047f66485dd.png?width=104&height=104&dpr=2&crop=1:1,smart'
+    }
 
     const arr = new Uint8Array(LENGTH * LENGTH * 3 / 2)
     const arrSet = (uint8: number, i: number) => {
