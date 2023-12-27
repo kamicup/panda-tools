@@ -31,6 +31,9 @@ const config: Configuration = {
     },
     resolve: {
         extensions: ['.js', '.ts'],
+        alias: {
+            'node-fetch': `${__dirname}/node_modules/node-fetch/lib/index.js`,
+        },
     },
     plugins: [
         new IgnorePlugin({
