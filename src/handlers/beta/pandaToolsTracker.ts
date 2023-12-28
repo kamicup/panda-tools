@@ -39,6 +39,10 @@ export default async function pandaToolsTracker(event: APIGatewayProxyEventV2, d
                 if (debug) {
                     console.info('updateItemOutput:', updateItemOutput)
                 }
+                const count = updateItemOutput.Attributes?.Count?.N
+                if (count) {
+                    return callExternalResponse(200, count)
+                }
             }
         }
     }

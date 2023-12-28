@@ -56462,10 +56462,11 @@ var client_dynamodb_1 = __webpack_require__(5217);
 var counter_1 = __webpack_require__(2457);
 var env_1 = __webpack_require__(3567);
 function pandaToolsTracker(event, data) {
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var time, timeEpoch, wid, sensor, timing, series, client, _i, _a, entry, _b, userID, timestamp, putItemOutput, updateItemOutput;
-        return __generator(this, function (_c) {
-            switch (_c.label) {
+        var time, timeEpoch, wid, sensor, timing, series, client, _i, _c, entry, _d, userID, timestamp, putItemOutput, updateItemOutput, count;
+        return __generator(this, function (_e) {
+            switch (_e.label) {
                 case 0:
                     time = event.requestContext.time;
                     timeEpoch = event.requestContext.timeEpoch;
@@ -56477,14 +56478,14 @@ function pandaToolsTracker(event, data) {
                     client = new client_dynamodb_1.DynamoDBClient({
                         region: env_1.region,
                     });
-                    _i = 0, _a = series.split(',');
-                    _c.label = 1;
+                    _i = 0, _c = series.split(',');
+                    _e.label = 1;
                 case 1:
-                    if (!(_i < _a.length)) return [3 /*break*/, 5];
-                    entry = _a[_i];
+                    if (!(_i < _c.length)) return [3 /*break*/, 5];
+                    entry = _c[_i];
                     if (entry === "")
                         return [3 /*break*/, 4];
-                    _b = entry.split(':'), userID = _b[0], timestamp = _b[1];
+                    _d = entry.split(':'), userID = _d[0], timestamp = _d[1];
                     return [4 /*yield*/, client.send(new client_dynamodb_1.PutItemCommand({
                             TableName: env_1.tableName,
                             Item: {
@@ -56498,18 +56499,22 @@ function pandaToolsTracker(event, data) {
                             },
                         }))];
                 case 2:
-                    putItemOutput = _c.sent();
+                    putItemOutput = _e.sent();
                     if (env_1.debug) {
                         console.info('putItemOutput:', putItemOutput);
                     }
                     if (!sensor) return [3 /*break*/, 4];
                     return [4 /*yield*/, client.send((0, counter_1.atomicCountUp)(env_1.tableName, wid, sensor))];
                 case 3:
-                    updateItemOutput = _c.sent();
+                    updateItemOutput = _e.sent();
                     if (env_1.debug) {
                         console.info('updateItemOutput:', updateItemOutput);
                     }
-                    _c.label = 4;
+                    count = (_b = (_a = updateItemOutput.Attributes) === null || _a === void 0 ? void 0 : _a.Count) === null || _b === void 0 ? void 0 : _b.N;
+                    if (count) {
+                        return [2 /*return*/, (0, env_1.callExternalResponse)(200, count)];
+                    }
+                    _e.label = 4;
                 case 4:
                     _i++;
                     return [3 /*break*/, 1];
