@@ -20,9 +20,10 @@ query_endpoint = 'https://0ivhbivo92.execute-api.ap-northeast-1.amazonaws.com/qu
 
 def get_data(wid: str) -> (list, int, int):
     url = "{}?wid={}".format(query_endpoint, wid)
-    r = requests.get(url)
+    r = requests.get(url, allow_redirects=True)
+    print('StatusCode: {}'.format(r.status_code))
     data = r.json()
-    return data['Items'], data['Count'], data['ScannedCount']
+    return data['Items']
 
 
 def get_analyzed_data(wid: str) -> (list, float, float, int, int):
@@ -95,8 +96,8 @@ def create_plots(wid: str):
 
     [real_wid, pass_phrase] = wid.split('_')
 
-    (items, count, scanned_count) = get_data(wid)
-    print('count: {}, scanned: {}'.format(count, scanned_count))
+    items = get_data(wid)
+    print('count: {}'.format(len(items)))
 
     (datetime_min, datetime_max) = timestamp_range_of(items)
     sensor_data = sensor_data_of(items)

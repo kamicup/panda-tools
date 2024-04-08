@@ -37266,7 +37266,7 @@ function individualSensorCounts(wid) {
 }
 function simpleQuery(wid, sensor, sourceIp, userId) {
     return __awaiter(this, void 0, void 0, function () {
-        var input, filters, eaNames, decrypted, client, items, safeItems, jsonString, objectKey, s3, _, command, signedUrl;
+        var input, filters, eaNames, decrypted, client, items, safeItems, jsonString, objectKey, s3Client, _, command, signedUrl;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -37324,10 +37324,10 @@ function simpleQuery(wid, sensor, sourceIp, userId) {
                     });
                     jsonString = JSON.stringify({ Items: safeItems });
                     objectKey = wid + "_" + Date.now();
-                    s3 = new client_s3_1.S3Client({
+                    s3Client = new client_s3_1.S3Client({
                         region: region
                     });
-                    return [4 /*yield*/, s3.send(new client_s3_1.PutObjectCommand({
+                    return [4 /*yield*/, s3Client.send(new client_s3_1.PutObjectCommand({
                             Body: jsonString,
                             Bucket: bucket,
                             Key: objectKey,
@@ -37339,7 +37339,7 @@ function simpleQuery(wid, sensor, sourceIp, userId) {
                         Bucket: bucket,
                         Key: objectKey,
                     });
-                    return [4 /*yield*/, (0, s3_request_presigner_1.getSignedUrl)(client, command, { expiresIn: 3600 })];
+                    return [4 /*yield*/, (0, s3_request_presigner_1.getSignedUrl)(s3Client, command, { expiresIn: 3600 })];
                 case 3:
                     signedUrl = _a.sent();
                     return [2 /*return*/, {

@@ -170,10 +170,10 @@ async function simpleQuery(wid: string, sensor: string | undefined, sourceIp: st
     // Lambda は 6MB を超えるデータを返せず 413 エラーになるので S3 に置いてリダイレクト
 
     const objectKey = wid + "_" + Date.now()
-    const s3 = new S3Client({
+    const s3Client = new S3Client({
         region: region
     })
-    const _ = await s3.send(new PutObjectCommand({
+    const _ = await s3Client.send(new PutObjectCommand({
         Body: jsonString,
         Bucket: bucket,
         Key: objectKey,
@@ -183,7 +183,7 @@ async function simpleQuery(wid: string, sensor: string | undefined, sourceIp: st
         Bucket: bucket,
         Key: objectKey,
     })
-    const signedUrl = await getSignedUrl(client, command, {expiresIn: 3600})
+    const signedUrl = await getSignedUrl(s3Client, command, {expiresIn: 3600})
 
    return {
         statusCode: 302,
