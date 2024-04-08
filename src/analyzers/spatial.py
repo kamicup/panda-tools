@@ -82,9 +82,13 @@ def timing_data_of(items: list):
                 data[timing] += 1
             else:
                 data[timing] = 1
+
+    # data をキーの数値の昇順でソート
+    sorted_data = dict(sorted(data.items(), key=lambda x: float(x[0])))
+
     timings = []
     counts = []
-    for key, value in data.items():
+    for key, value in sorted_data.items():
         timings.append(float(key))
         counts.append(value)
     return timings, counts
