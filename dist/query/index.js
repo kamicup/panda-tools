@@ -23087,7 +23087,7 @@ function simpleQuery(wid, sensor, sourceIp, userId) {
                     client = new client_dynamodb_1.DynamoDBClient({
                         region: region,
                     });
-                    return [4 /*yield*/, queryAll(client, input, undefined)];
+                    return [4 /*yield*/, queryAll(client, input)];
                 case 1:
                     items = _a.sent();
                     safeItems = items.map(function (value) {
@@ -23113,32 +23113,35 @@ var errorJsonResponse = function (message) {
 var jsonResponse = function (statusCode, body) {
     return { statusCode: statusCode, body: JSON.stringify(body) };
 };
-function queryAll(client, input, exclusiveStartKey) {
-    var _a;
-    if (exclusiveStartKey === void 0) { exclusiveStartKey = undefined; }
+function queryAll(client, input) {
     return __awaiter(this, void 0, void 0, function () {
-        var queryCommandOutput, items, nextItems;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
+        var items, exclusiveStartKey, queryCommandOutput;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
                 case 0:
+                    items = [];
+                    exclusiveStartKey = undefined;
+                    _a.label = 1;
+                case 1:
                     if (exclusiveStartKey) {
                         input.ExclusiveStartKey = exclusiveStartKey;
                     }
                     return [4 /*yield*/, client.send(new client_dynamodb_1.QueryCommand(input))];
-                case 1:
-                    queryCommandOutput = _b.sent();
+                case 2:
+                    queryCommandOutput = _a.sent();
                     if (debug) {
                         console.info('queryCommandOutput.ConsumedCapacity:', queryCommandOutput.ConsumedCapacity);
                         console.info('queryCommandOutput.LastEvaluatedKey:', queryCommandOutput.LastEvaluatedKey);
                     }
-                    items = (_a = queryCommandOutput.Items) !== null && _a !== void 0 ? _a : [];
-                    if (!queryCommandOutput.LastEvaluatedKey) return [3 /*break*/, 3];
-                    return [4 /*yield*/, queryAll(client, input, queryCommandOutput.LastEvaluatedKey)];
-                case 2:
-                    nextItems = _b.sent();
-                    items.push.apply(items, nextItems);
-                    _b.label = 3;
-                case 3: return [2 /*return*/, items];
+                    if (queryCommandOutput.Items) {
+                        items.push.apply(items, queryCommandOutput.Items);
+                    }
+                    exclusiveStartKey = queryCommandOutput.LastEvaluatedKey;
+                    _a.label = 3;
+                case 3:
+                    if (exclusiveStartKey) return [3 /*break*/, 1];
+                    _a.label = 4;
+                case 4: return [2 /*return*/, items];
             }
         });
     });
