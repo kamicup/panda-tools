@@ -22,6 +22,7 @@ const config: Configuration = {
     output: {
         path: `${__dirname}/dist`,
         libraryTarget: 'commonjs2',
+        asyncChunks: false,
     },
     externals: ['aws-sdk'],
     module: {
