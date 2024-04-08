@@ -148,7 +148,7 @@ async function simpleQuery(wid: string, sensor: string | undefined, sourceIp: st
     const client = new DynamoDBClient({
         region: region,
     })
-    const items = await queryAll(client, input, undefined)
+    const items = await queryAll(client, input)
 
     const safeItems = items.map((value: Record<string, AttributeValue>) => {
         return {
@@ -173,20 +173,26 @@ const jsonResponse = (statusCode: number, body: any) => {
     return {statusCode: statusCode, body: JSON.stringify(body)}
 }
 
-async function queryAll(client: DynamoDBClient, input: QueryCommandInput, exclusiveStartKey: undefined | Record<string, AttributeValue> = undefined) {
-    if (exclusiveStartKey) {
-        input.ExclusiveStartKey = exclusiveStartKey
-    }
-    const queryCommandOutput = await client.send(new QueryCommand(input))
-    if (debug) {
-        console.info('queryCommandOutput.ConsumedCapacity:', queryCommandOutput.ConsumedCapacity)
-        console.info('queryCommandOutput.LastEvaluatedKey:', queryCommandOutput.LastEvaluatedKey)
-    }
-    const items = queryCommandOutput.Items ?? []
-    if (queryCommandOutput.LastEvaluatedKey) {
-        const nextItems = await queryAll(client, input, queryCommandOutput.LastEvaluatedKey)
-        items.push(...nextItems)
-    }
+async function queryAll(client: DynamoDBClient, input: QueryCommandInput) {
+    const items = []
+
+    let exclusiveStartKey: undefined | Record<string, AttributeValue> = undefined
+    do {
+        if (exclusiveStartKey) {
+            input.ExclusiveStartKey = exclusiveStartKey
+        }
+        const queryCommandOutput = await client.send(new QueryCommand(input))
+        if (debug) {
+            console.info('queryCommandOutput.ConsumedCapacity:', queryCommandOutput.ConsumedCapacity)
+            console.info('queryCommandOutput.LastEvaluatedKey:', queryCommandOutput.LastEvaluatedKey)
+        }
+        if (queryCommandOutput.Items) {
+            items.push(...queryCommandOutput.Items)
+        }
+        exclusiveStartKey = queryCommandOutput.LastEvaluatedKey
+
+    } while (exclusiveStartKey)
+
     return items
 }
 
