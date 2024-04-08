@@ -25,9 +25,10 @@ Parameters:
 
 Globals:
   Function:
-    Runtime: nodejs16.x
+    Runtime: nodejs20.x
     Handler: index.handler
     Timeout: 10
+    MemorySize: 2048
     Architectures:
       - arm64
     Environment:
@@ -85,7 +86,7 @@ Resources:
       Environment:
         Variables:
           DEBUG: "1"
-      Timeout: 30
+      Timeout: 60
 
   DynamoDBTable:
     Type: AWS::DynamoDB::Table
