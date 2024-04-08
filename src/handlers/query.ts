@@ -1,7 +1,9 @@
 import {AttributeValue, DynamoDBClient, QueryCommand, QueryCommandInput} from '@aws-sdk/client-dynamodb'
+import {GetObjectCommand, PutObjectCommand, S3Client} from '@aws-sdk/client-s3'
 import {APIGatewayProxyCallbackV2, APIGatewayProxyEventV2, APIGatewayProxyResultV2, Context} from 'aws-lambda'
 import * as crypto from 'crypto'
 import {atomicCountSet} from "./lib/counter";
+import {getSignedUrl} from "@aws-sdk/s3-request-presigner";
 
 // 環境変数
 const region = process.env.DDB_REGION
@@ -10,6 +12,7 @@ const salt = process.env.SALT!
 const key = new Buffer(process.env.CIPHER_KEY!, 'base64'); // 32バイトの鍵
 const iv = new Buffer(process.env.CIPHER_IV!, 'base64'); // 16バイトの初期化ベクトル
 const debug = process.env.DEBUG === '1'
+const bucket = process.env.BUCKET!
 
 export async function handler(event: APIGatewayProxyEventV2, context: Context, callback: APIGatewayProxyCallbackV2)
     : Promise<APIGatewayProxyResultV2> {
@@ -161,8 +164,34 @@ async function simpleQuery(wid: string, sensor: string | undefined, sourceIp: st
             UserAgentHash: hash(value.UserAgent?.S),
         }
     })
+    // return jsonResponse(200, {Items: safeItems})
+    const jsonString = JSON.stringify({Items: safeItems})
 
-    return jsonResponse(200, {Items: safeItems})
+    // Lambda は 6MB を超えるデータを返せず 413 エラーになるので S3 に置いてリダイレクト
+
+    const objectKey = wid + "_" + Date.now()
+    const s3 = new S3Client({
+        region: region
+    })
+    const _ = await s3.send(new PutObjectCommand({
+        Body: jsonString,
+        Bucket: bucket,
+        Key: objectKey,
+        ContentType: "application/json",
+    }))
+    const command = new GetObjectCommand({
+        Bucket: bucket,
+        Key: objectKey,
+    })
+    const signedUrl = await getSignedUrl(client, command, {expiresIn: 3600})
+
+   return {
+        statusCode: 302,
+        headers: {
+            Location: signedUrl,
+        },
+        body: "",
+    }
 }
 
 const errorJsonResponse = (message: string) => {
