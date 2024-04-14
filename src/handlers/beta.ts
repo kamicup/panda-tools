@@ -4,6 +4,7 @@ import {debug} from "./beta/lib/env";
 import pandaToolsTotp from "./beta/pandaToolsTotp";
 import pandaToolsImageLoader from "./beta/pandaToolsImageLoader";
 import pandaToolsImagePanel from "./beta/pandaToolsImagePanel";
+import craftAnalytics from "./beta/craftAnalytics";
 
 export async function handler(event: APIGatewayProxyEventV2, context: Context, callback: APIGatewayProxyCallbackV2)
     : Promise<APIGatewayProxyResultV2> {
@@ -18,6 +19,9 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
     }
     const data = JSON.parse(body.request)
 
+    if ('cmd' in data && data.cmd === 'craftAnalytics') {
+        return await craftAnalytics(event, data)
+    }
     if ('cmd' in data && data.cmd === 'totp') {
         return pandaToolsTotp(event, data)
     }

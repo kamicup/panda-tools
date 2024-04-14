@@ -55028,6 +55028,7 @@ var pandaToolsTracker_1 = __importDefault(__webpack_require__(6514));
 var env_1 = __webpack_require__(2756);
 var pandaToolsTotp_1 = __importDefault(__webpack_require__(5073));
 var pandaToolsImagePanel_1 = __importDefault(__webpack_require__(2473));
+var craftAnalytics_1 = __importDefault(__webpack_require__(7173));
 function handler(event, context, callback) {
     return __awaiter(this, void 0, void 0, function () {
         var body, data;
@@ -55042,19 +55043,219 @@ function handler(event, context, callback) {
                         console.info('body:', body);
                     }
                     data = JSON.parse(body.request);
+                    if (!('cmd' in data && data.cmd === 'craftAnalytics')) return [3 /*break*/, 2];
+                    return [4 /*yield*/, (0, craftAnalytics_1.default)(event, data)];
+                case 1: return [2 /*return*/, _a.sent()];
+                case 2:
                     if ('cmd' in data && data.cmd === 'totp') {
                         return [2 /*return*/, (0, pandaToolsTotp_1.default)(event, data)];
                     }
-                    if (!('cmd' in data && data.cmd === 'imagePanel')) return [3 /*break*/, 2];
+                    if (!('cmd' in data && data.cmd === 'imagePanel')) return [3 /*break*/, 4];
                     return [4 /*yield*/, (0, pandaToolsImagePanel_1.default)(event, data)];
-                case 1: return [2 /*return*/, _a.sent()];
-                case 2: return [4 /*yield*/, (0, pandaToolsTracker_1.default)(event, data)];
                 case 3: return [2 /*return*/, _a.sent()];
+                case 4: return [4 /*yield*/, (0, pandaToolsTracker_1.default)(event, data)];
+                case 5: return [2 /*return*/, _a.sent()];
             }
         });
     });
 }
 exports.handler = handler;
+
+
+/***/ }),
+
+/***/ 7173:
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+var env_1 = __webpack_require__(2756);
+var client_dynamodb_1 = __webpack_require__(6657);
+var META_SET_PASS = 'SET_PASS';
+var META_REPORT = 'REPORT';
+var META_AUTH_PASS = 'AUTH_PASS';
+function craftAnalytics(event, data) {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    if (!data[META_SET_PASS]) return [3 /*break*/, 2];
+                    return [4 /*yield*/, processSetPass(data[META_SET_PASS])];
+                case 1: return [2 /*return*/, _a.sent()];
+                case 2:
+                    if (!data[META_REPORT]) return [3 /*break*/, 4];
+                    return [4 /*yield*/, processReport(data[META_REPORT])];
+                case 3: return [2 /*return*/, _a.sent()];
+                case 4:
+                    if (!data[META_AUTH_PASS]) return [3 /*break*/, 6];
+                    return [4 /*yield*/, processAuthPass(data[META_AUTH_PASS])];
+                case 5: return [2 /*return*/, _a.sent()];
+                case 6: return [2 /*return*/, (0, env_1.callExternalResponse)(200, JSON.stringify({
+                        result: false,
+                    }))];
+            }
+        });
+    });
+}
+exports["default"] = craftAnalytics;
+function newClient() {
+    return new client_dynamodb_1.DynamoDBClient({
+        region: env_1.region,
+    });
+}
+function processSetPass(data) {
+    return __awaiter(this, void 0, void 0, function () {
+        var pass, interval, client, partitionKey, queryCommandOutput;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    pass = data.text;
+                    interval = data.interval;
+                    client = newClient();
+                    partitionKey = pass + '_' + interval;
+                    return [4 /*yield*/, client.send(query(partitionKey))];
+                case 1:
+                    queryCommandOutput = _a.sent();
+                    if (queryCommandOutput.Items && queryCommandOutput.Items.length > 0) {
+                        return [2 /*return*/, (0, env_1.callExternalResponse)(200, JSON.stringify({
+                            //result: false
+                            }))];
+                    }
+                    return [2 /*return*/, (0, env_1.callExternalResponse)(200, JSON.stringify({
+                            pass: pass
+                        }))];
+            }
+        });
+    });
+}
+function processReport(data) {
+    return __awaiter(this, void 0, void 0, function () {
+        var pass, interval, list, client, partitionKey, _a, _b, _c, _i, tmpUserId, rangeKey, updateItemOutput;
+        return __generator(this, function (_d) {
+            switch (_d.label) {
+                case 0:
+                    pass = data.pass;
+                    interval = data.interval;
+                    list = data.list;
+                    client = newClient();
+                    partitionKey = pass + '_' + interval;
+                    _a = list;
+                    _b = [];
+                    for (_c in _a)
+                        _b.push(_c);
+                    _i = 0;
+                    _d.label = 1;
+                case 1:
+                    if (!(_i < _b.length)) return [3 /*break*/, 4];
+                    _c = _b[_i];
+                    if (!(_c in _a)) return [3 /*break*/, 3];
+                    tmpUserId = _c;
+                    rangeKey = list[tmpUserId];
+                    return [4 /*yield*/, client.send(atomicCountUp(env_1.craftTableName, partitionKey, rangeKey))];
+                case 2:
+                    updateItemOutput = _d.sent();
+                    if (env_1.debug) {
+                        console.info('updateItemOutput:', updateItemOutput);
+                    }
+                    _d.label = 3;
+                case 3:
+                    _i++;
+                    return [3 /*break*/, 1];
+                case 4: return [2 /*return*/, (0, env_1.callExternalResponse)(200, JSON.stringify({}))];
+            }
+        });
+    });
+}
+function processAuthPass(data) {
+    return __awaiter(this, void 0, void 0, function () {
+        var pass, interval, client, partitionKey, lines, queryCommandOutput, _i, _a, item, timing, count, plainText;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    pass = data.text;
+                    interval = data.interval;
+                    client = newClient();
+                    partitionKey = pass + '_' + interval;
+                    lines = [];
+                    return [4 /*yield*/, client.send(query(partitionKey))];
+                case 1:
+                    queryCommandOutput = _b.sent();
+                    if (env_1.debug) {
+                        console.info('queryCommandOutput.ConsumedCapacity:', queryCommandOutput.ConsumedCapacity);
+                        console.info('queryCommandOutput.LastEvaluatedKey:', queryCommandOutput.LastEvaluatedKey);
+                    }
+                    if (queryCommandOutput.Items) {
+                        for (_i = 0, _a = queryCommandOutput.Items; _i < _a.length; _i++) {
+                            item = _a[_i];
+                            timing = item.SortKey.N;
+                            count = item.Count.N;
+                            lines.push(timing + ' : ' + count);
+                        }
+                    }
+                    plainText = lines.join("\n");
+                    return [2 /*return*/, (0, env_1.callExternalResponse)(200, plainText)];
+            }
+        });
+    });
+}
+function query(partitionKey) {
+    return new client_dynamodb_1.QueryCommand({
+        TableName: env_1.craftTableName,
+        KeyConditionExpression: "PartitionKey = :key",
+        ExpressionAttributeValues: { ":key": { S: partitionKey } },
+        ReturnConsumedCapacity: "TOTAL",
+    });
+}
+function atomicCountUp(tableName, partitionKey, sortKey) {
+    return new client_dynamodb_1.UpdateItemCommand({
+        TableName: env_1.craftTableName,
+        ReturnValues: "ALL_NEW",
+        Key: {
+            PartitionKey: { S: partitionKey },
+            SortKey: { N: String(sortKey) },
+        },
+        UpdateExpression: 'ADD #count :q',
+        ExpressionAttributeNames: { '#count': 'Count' },
+        ExpressionAttributeValues: { ':q': { N: '1' } },
+    });
+}
 
 
 /***/ }),
@@ -55065,12 +55266,14 @@ exports.handler = handler;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.callExternalResponse = exports.verify = exports.debug = exports.tableName = exports.region = void 0;
+exports.callExternalResponse = exports.verify = exports.debug = exports.craftTableName = exports.tableName = exports.region = void 0;
 // 環境変数
 var region = process.env.DDB_REGION;
 exports.region = region;
 var tableName = process.env.DDB_TABLE;
 exports.tableName = tableName;
+var craftTableName = process.env.DDB_TABLE_CRAFT;
+exports.craftTableName = craftTableName;
 var debug = process.env.DEBUG === '1';
 exports.debug = debug;
 var verify = process.env.VERIFY_TOKEN;

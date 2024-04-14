@@ -10,6 +10,9 @@ Parameters:
   DdbTable:
     Type: String
     Default: PandaTools
+  CraftDdbTable:
+    Type: String
+    Default: CraftPandaTools
   Salt:
     Type: String
     Default: SaltSaltSaltSaltSaltSaltSaltSaltSaltSaltSaltSaltSalt
@@ -38,6 +41,7 @@ Globals:
       Variables:
         DDB_REGION: !Ref DdbRegion
         DDB_TABLE: !Ref DdbTable
+        DDB_TABLE_CRAFT: !Ref CraftDdbTable
         SALT: !Ref Salt
         CIPHER_KEY: !Ref CipherKey
         CIPHER_IV: !Ref CipherIv
@@ -109,6 +113,22 @@ Resources:
           AttributeType: S
         - AttributeName: SortKey
           AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+
+  CraftDynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref CraftDdbTable
+      KeySchema:
+        - AttributeName: PartitionKey
+          KeyType: HASH
+        - AttributeName: SortKey
+          KeyType: RANGE
+      AttributeDefinitions:
+        - AttributeName: PartitionKey
+          AttributeType: S
+        - AttributeName: SortKey
+          AttributeType: N
       BillingMode: PAY_PER_REQUEST
 
   S3Bucket:
