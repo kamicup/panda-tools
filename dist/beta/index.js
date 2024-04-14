@@ -55205,7 +55205,7 @@ function processReport(data) {
 }
 function processAuthPass(data) {
     return __awaiter(this, void 0, void 0, function () {
-        var pass, interval, client, partitionKey, lines, queryCommandOutput, _i, _a, item, timing, count, plainText;
+        var pass, interval, client, partitionKey, items, queryCommandOutput, _i, _a, item, timing, count;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -55213,7 +55213,7 @@ function processAuthPass(data) {
                     interval = data.interval;
                     client = newClient();
                     partitionKey = pass + '_' + interval;
-                    lines = [];
+                    items = {};
                     return [4 /*yield*/, client.send(query(partitionKey))];
                 case 1:
                     queryCommandOutput = _b.sent();
@@ -55224,22 +55224,34 @@ function processAuthPass(data) {
                     if (queryCommandOutput.Items) {
                         for (_i = 0, _a = queryCommandOutput.Items; _i < _a.length; _i++) {
                             item = _a[_i];
-                            timing = item.SortKey.N;
-                            count = item.Count.N;
-                            lines.push(timing + ' : ' + count);
+                            if (item.SortKey.N && item.Count.N) {
+                                timing = Number.parseInt(item.SortKey.N);
+                                count = Number.parseInt(item.Count.N);
+                                items[timing] = count;
+                            }
                         }
                     }
-                    plainText = lines.join("\n");
-                    return [2 /*return*/, (0, env_1.callExternalResponse)(200, plainText)];
+                    //exclusiveStartKey = queryCommandOutput.LastEvaluatedKey
+                    return [2 /*return*/, (0, env_1.callExternalResponse)(200, JSON.stringify(items))];
             }
         });
     });
 }
 function query(partitionKey) {
+    //const filter = [1, 4, 9, 25, 64, 159, 441] // fibonacci ^2 -> 73.5 min
     return new client_dynamodb_1.QueryCommand({
         TableName: env_1.craftTableName,
-        KeyConditionExpression: "PartitionKey = :key",
-        ExpressionAttributeValues: { ":key": { S: partitionKey } },
+        KeyConditionExpression: "PartitionKey = :key and SortKey IN (:v1, :v2, :v3, :v4, :v5, :v6, :v7)",
+        ExpressionAttributeValues: {
+            ":key": { S: partitionKey },
+            ":v1": { N: "1" },
+            ":v2": { N: "4" },
+            ":v3": { N: "9" },
+            ":v4": { N: "25" },
+            ":v5": { N: "64" },
+            ":v6": { N: "159" },
+            ":v7": { N: "441" },
+        },
         ReturnConsumedCapacity: "TOTAL",
     });
 }
