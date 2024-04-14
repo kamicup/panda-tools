@@ -97,7 +97,7 @@ async function processAuthPass(data: AuthPassData) {
 
     // 本来はページングが必要だけど、レコード量が限られてるのでサボってる
 
-    const lines: string[] = [];
+    const items: Record<number, number> = {};
 
     const queryCommandOutput = await client.send(query(partitionKey))
     if (debug) {
@@ -106,23 +106,35 @@ async function processAuthPass(data: AuthPassData) {
     }
     if (queryCommandOutput.Items) {
         for (const item of queryCommandOutput.Items) {
-            const timing = item.SortKey.N
-            const count = item.Count.N
-            lines.push(timing + ' : ' + count)
+            if (item.SortKey.N && item.Count.N) {
+                const timing = Number.parseInt(item.SortKey.N)
+                const count = Number.parseInt(item.Count.N)
+                items[timing] = count
+            }
         }
     }
     //exclusiveStartKey = queryCommandOutput.LastEvaluatedKey
 
-    const plainText = lines.join("\n")
-
-    return callExternalResponse(200, plainText)
+    return callExternalResponse(200, JSON.stringify(items))
 }
 
 function query(partitionKey: string) {
+
+    //const filter = [1, 4, 9, 25, 64, 159, 441] // fibonacci ^2 -> 73.5 min
+
     return new QueryCommand({
         TableName: craftTableName,
-        KeyConditionExpression: "PartitionKey = :key",
-        ExpressionAttributeValues: {":key": {S: partitionKey}},
+        KeyConditionExpression: "PartitionKey = :key and SortKey IN (:v1, :v2, :v3, :v4, :v5, :v6, :v7)",
+        ExpressionAttributeValues: {
+            ":key": {S: partitionKey},
+            ":v1": {N: "1"},
+            ":v2": {N: "4"},
+            ":v3": {N: "9"},
+            ":v4": {N: "25"},
+            ":v5": {N: "64"},
+            ":v6": {N: "159"},
+            ":v7": {N: "441"},
+        },
         ReturnConsumedCapacity: "TOTAL",
     })
 }
