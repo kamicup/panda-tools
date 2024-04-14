@@ -55142,7 +55142,7 @@ function newClient() {
 }
 function processSetPass(data) {
     return __awaiter(this, void 0, void 0, function () {
-        var pass, interval, client, partitionKey, queryCommandOutput;
+        var pass, interval, client, partitionKey, output;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -55150,12 +55150,12 @@ function processSetPass(data) {
                     interval = data.interval;
                     client = newClient();
                     partitionKey = pass + '_' + interval;
-                    return [4 /*yield*/, client.send(query(partitionKey))];
+                    return [4 /*yield*/, client.send(batchGet(partitionKey))];
                 case 1:
-                    queryCommandOutput = _a.sent();
-                    if (queryCommandOutput.Items && queryCommandOutput.Items.length > 0) {
+                    output = _a.sent();
+                    if (output.Responses && output.Responses[env_1.craftTableName].length > 0) {
                         return [2 /*return*/, (0, env_1.callExternalResponse)(200, JSON.stringify({
-                            //result: false
+                                error: 'already exists',
                             }))];
                     }
                     return [2 /*return*/, (0, env_1.callExternalResponse)(200, JSON.stringify({
@@ -55205,7 +55205,7 @@ function processReport(data) {
 }
 function processAuthPass(data) {
     return __awaiter(this, void 0, void 0, function () {
-        var pass, interval, client, partitionKey, items, queryCommandOutput, _i, _a, item, timing, count;
+        var pass, interval, client, partitionKey, items, output, _i, _a, record, timing, count;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -55214,19 +55214,18 @@ function processAuthPass(data) {
                     client = newClient();
                     partitionKey = pass + '_' + interval;
                     items = {};
-                    return [4 /*yield*/, client.send(query(partitionKey))];
+                    return [4 /*yield*/, client.send(batchGet(partitionKey))];
                 case 1:
-                    queryCommandOutput = _b.sent();
+                    output = _b.sent();
                     if (env_1.debug) {
-                        console.info('queryCommandOutput.ConsumedCapacity:', queryCommandOutput.ConsumedCapacity);
-                        console.info('queryCommandOutput.LastEvaluatedKey:', queryCommandOutput.LastEvaluatedKey);
+                        console.info('queryCommandOutput.ConsumedCapacity:', output.ConsumedCapacity);
                     }
-                    if (queryCommandOutput.Items) {
-                        for (_i = 0, _a = queryCommandOutput.Items; _i < _a.length; _i++) {
-                            item = _a[_i];
-                            if (item.SortKey.N && item.Count.N) {
-                                timing = Number.parseInt(item.SortKey.N);
-                                count = Number.parseInt(item.Count.N);
+                    if (output.Responses && output.Responses[env_1.craftTableName]) {
+                        for (_i = 0, _a = output.Responses[env_1.craftTableName]; _i < _a.length; _i++) {
+                            record = _a[_i];
+                            if (record.SortKey.N && record.Count.N) {
+                                timing = Number.parseInt(record.SortKey.N);
+                                count = Number.parseInt(record.Count.N);
                                 items[timing] = count;
                             }
                         }
@@ -55237,21 +55236,23 @@ function processAuthPass(data) {
         });
     });
 }
-function query(partitionKey) {
+function batchGet(partitionKey) {
     //const filter = [1, 4, 9, 25, 64, 159, 441] // fibonacci ^2 -> 73.5 min
-    return new client_dynamodb_1.QueryCommand({
-        TableName: env_1.craftTableName,
-        KeyConditionExpression: "PartitionKey = :key and SortKey IN (:v1, :v2, :v3, :v4, :v5, :v6, :v7)",
-        ExpressionAttributeValues: {
-            ":key": { S: partitionKey },
-            ":v1": { N: "1" },
-            ":v2": { N: "4" },
-            ":v3": { N: "9" },
-            ":v4": { N: "25" },
-            ":v5": { N: "64" },
-            ":v6": { N: "159" },
-            ":v7": { N: "441" },
-        },
+    var _a;
+    return new client_dynamodb_1.BatchGetItemCommand({
+        RequestItems: (_a = {},
+            _a[env_1.craftTableName] = {
+                Keys: [
+                    { PartitionKey: { S: partitionKey }, SortKey: { N: "1" } },
+                    { PartitionKey: { S: partitionKey }, SortKey: { N: "4" } },
+                    { PartitionKey: { S: partitionKey }, SortKey: { N: "9" } },
+                    { PartitionKey: { S: partitionKey }, SortKey: { N: "25" } },
+                    { PartitionKey: { S: partitionKey }, SortKey: { N: "64" } },
+                    { PartitionKey: { S: partitionKey }, SortKey: { N: "159" } },
+                    { PartitionKey: { S: partitionKey }, SortKey: { N: "441" } },
+                ]
+            },
+            _a),
         ReturnConsumedCapacity: "TOTAL",
     });
 }
