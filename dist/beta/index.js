@@ -55241,7 +55241,8 @@ function query(partitionKey) {
     //const filter = [1, 4, 9, 25, 64, 159, 441] // fibonacci ^2 -> 73.5 min
     return new client_dynamodb_1.QueryCommand({
         TableName: env_1.craftTableName,
-        KeyConditionExpression: "PartitionKey = :key and SortKey IN (:v1, :v2, :v3, :v4, :v5, :v6, :v7)",
+        KeyConditionExpression: "PartitionKey = :key",
+        FilterExpression: "SortKey IN (:v1, :v2, :v3, :v4, :v5, :v6, :v7)",
         ExpressionAttributeValues: {
             ":key": { S: partitionKey },
             ":v1": { N: "1" },

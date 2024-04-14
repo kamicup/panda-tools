@@ -124,7 +124,8 @@ function query(partitionKey: string) {
 
     return new QueryCommand({
         TableName: craftTableName,
-        KeyConditionExpression: "PartitionKey = :key and SortKey IN (:v1, :v2, :v3, :v4, :v5, :v6, :v7)",
+        KeyConditionExpression: "PartitionKey = :key",
+        FilterExpression: "SortKey IN (:v1, :v2, :v3, :v4, :v5, :v6, :v7)",
         ExpressionAttributeValues: {
             ":key": {S: partitionKey},
             ":v1": {N: "1"},
