@@ -55029,6 +55029,7 @@ var env_1 = __webpack_require__(2756);
 var pandaToolsTotp_1 = __importDefault(__webpack_require__(5073));
 var pandaToolsImagePanel_1 = __importDefault(__webpack_require__(2473));
 var craftAnalytics_1 = __importDefault(__webpack_require__(7173));
+var craftGate_1 = __importDefault(__webpack_require__(3474));
 function handler(event, context, callback) {
     return __awaiter(this, void 0, void 0, function () {
         var body, data;
@@ -55047,14 +55048,18 @@ function handler(event, context, callback) {
                     return [4 /*yield*/, (0, craftAnalytics_1.default)(event, data)];
                 case 1: return [2 /*return*/, _a.sent()];
                 case 2:
+                    if (!('cmd' in data && data.cmd === 'craftGate')) return [3 /*break*/, 4];
+                    return [4 /*yield*/, (0, craftGate_1.default)(event, data)];
+                case 3: return [2 /*return*/, _a.sent()];
+                case 4:
                     if ('cmd' in data && data.cmd === 'totp') {
                         return [2 /*return*/, (0, pandaToolsTotp_1.default)(event, data)];
                     }
-                    if (!('cmd' in data && data.cmd === 'imagePanel')) return [3 /*break*/, 4];
+                    if (!('cmd' in data && data.cmd === 'imagePanel')) return [3 /*break*/, 6];
                     return [4 /*yield*/, (0, pandaToolsImagePanel_1.default)(event, data)];
-                case 3: return [2 /*return*/, _a.sent()];
-                case 4: return [4 /*yield*/, (0, pandaToolsTracker_1.default)(event, data)];
                 case 5: return [2 /*return*/, _a.sent()];
+                case 6: return [4 /*yield*/, (0, pandaToolsTracker_1.default)(event, data)];
+                case 7: return [2 /*return*/, _a.sent()];
             }
         });
     });
@@ -55239,6 +55244,9 @@ function processAuthPass(data) {
 function batchGet(partitionKey) {
     //const filter = [1, 4, 9, 25, 64, 159, 441] // fibonacci ^2 -> 73.5 min
     var _a;
+    // 計測間隔15秒を単位とし、それぞれの訪問者が、そのN回目の時点まで滞在していた累計数を表示します。
+    // N : {1, 4, 9, 25, 64, 159, 441}
+    // →　これによって、入室から｛15秒後／1分後／2分15秒後／6分15秒後／16分後／39分45秒後／110分15秒後｝まで滞在していたユーザーの累計人数を知ることができます。
     return new client_dynamodb_1.BatchGetItemCommand({
         RequestItems: (_a = {},
             _a[env_1.craftTableName] = {
@@ -55273,13 +55281,171 @@ function atomicCountUp(tableName, partitionKey, sortKey) {
 
 /***/ }),
 
+/***/ 3474:
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+var env_1 = __webpack_require__(2756);
+var client_dynamodb_1 = __webpack_require__(6657);
+var META_REPORT = 'REPORT';
+function craftGate(event, data) {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    if (!data[META_REPORT]) return [3 /*break*/, 2];
+                    return [4 /*yield*/, processReport(data[META_REPORT])];
+                case 1: return [2 /*return*/, _a.sent()];
+                case 2: return [2 /*return*/, errorResponse()];
+            }
+        });
+    });
+}
+exports["default"] = craftGate;
+var errorResponse = function () {
+    return (0, env_1.callExternalResponse)(200, JSON.stringify({ result: false }));
+};
+function newClient() {
+    return new client_dynamodb_1.DynamoDBClient({
+        region: env_1.region,
+    });
+}
+function processReport(data) {
+    var _a, _b;
+    return __awaiter(this, void 0, void 0, function () {
+        var owner, group, gate, list, client, partitionKey, _i, list_1, idfc, sortKey, updateItemOutput, ownCount, n, output, getItemOutput, max, count, itemKey, v;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0:
+                    owner = data.owner;
+                    group = data.group;
+                    gate = data.gate;
+                    list = data.list;
+                    client = newClient();
+                    partitionKey = owner + '_' + group;
+                    if (!list) return [3 /*break*/, 5];
+                    _i = 0, list_1 = list;
+                    _c.label = 1;
+                case 1:
+                    if (!(_i < list_1.length)) return [3 /*break*/, 5];
+                    idfc = list_1[_i];
+                    sortKey = 'gate_' + gate + '_' + idfc;
+                    return [4 /*yield*/, client.send(atomicCountUp(env_1.craftGateTableName, partitionKey, sortKey, 'Count'))];
+                case 2:
+                    updateItemOutput = _c.sent();
+                    if (env_1.debug) {
+                        console.info('updateItemOutput:', updateItemOutput);
+                    }
+                    ownCount = (_b = (_a = updateItemOutput.Attributes) === null || _a === void 0 ? void 0 : _a.Count) === null || _b === void 0 ? void 0 : _b.N;
+                    if (!ownCount) return [3 /*break*/, 4];
+                    n = Number(ownCount);
+                    if (!(n === 1)) return [3 /*break*/, 4];
+                    return [4 /*yield*/, client.send(atomicCountUp(env_1.craftGateTableName, partitionKey, 'gates', gate))];
+                case 3:
+                    output = _c.sent();
+                    if (env_1.debug) {
+                        console.info('output:', output);
+                    }
+                    _c.label = 4;
+                case 4:
+                    _i++;
+                    return [3 /*break*/, 1];
+                case 5: return [4 /*yield*/, client.send(new client_dynamodb_1.GetItemCommand({
+                        TableName: env_1.craftGateTableName,
+                        Key: {
+                            PartitionKey: { S: partitionKey },
+                            SortKey: { S: 'gates' },
+                        }
+                    }))];
+                case 6:
+                    getItemOutput = _c.sent();
+                    if (env_1.debug) {
+                        console.info('getItemOutput:', getItemOutput);
+                    }
+                    if (getItemOutput.Item) {
+                        max = 0;
+                        count = 0;
+                        for (itemKey in getItemOutput.Item) {
+                            v = getItemOutput.Item[itemKey];
+                            if (v.N) {
+                                max = Math.max(max, Number(v.N));
+                            }
+                            if (itemKey === gate) {
+                                count = Number(v.N);
+                            }
+                        }
+                        return [2 /*return*/, (0, env_1.callExternalResponse)(200, JSON.stringify({
+                                count: count,
+                                max: max,
+                            }))];
+                    }
+                    return [2 /*return*/, errorResponse()];
+            }
+        });
+    });
+}
+function atomicCountUp(tableName, partitionKey, sortKey, attribute) {
+    return new client_dynamodb_1.UpdateItemCommand({
+        TableName: env_1.craftGateTableName,
+        ReturnValues: "ALL_NEW",
+        Key: {
+            PartitionKey: { S: partitionKey },
+            SortKey: { S: sortKey },
+        },
+        UpdateExpression: 'ADD #count :q',
+        ExpressionAttributeNames: { '#count': attribute },
+        ExpressionAttributeValues: { ':q': { N: '1' } },
+    });
+}
+
+
+/***/ }),
+
 /***/ 2756:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.callExternalResponse = exports.verify = exports.debug = exports.craftTableName = exports.tableName = exports.region = void 0;
+exports.callExternalResponse = exports.verify = exports.debug = exports.craftGateTableName = exports.craftTableName = exports.tableName = exports.region = void 0;
 // 環境変数
 var region = process.env.DDB_REGION;
 exports.region = region;
@@ -55287,6 +55453,8 @@ var tableName = process.env.DDB_TABLE;
 exports.tableName = tableName;
 var craftTableName = process.env.DDB_TABLE_CRAFT;
 exports.craftTableName = craftTableName;
+var craftGateTableName = process.env.DDB_TABLE_CRAFT_GATE;
+exports.craftGateTableName = craftGateTableName;
 var debug = process.env.DEBUG === '1';
 exports.debug = debug;
 var verify = process.env.VERIFY_TOKEN;

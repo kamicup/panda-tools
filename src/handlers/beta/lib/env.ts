@@ -2,6 +2,7 @@
 const region = process.env.DDB_REGION
 const tableName = process.env.DDB_TABLE!
 const craftTableName = process.env.DDB_TABLE_CRAFT!
+const craftGateTableName = process.env.DDB_TABLE_CRAFT_GATE!
 const debug = process.env.DEBUG === '1'
 const verify = process.env.VERIFY_TOKEN!
 
@@ -15,4 +16,4 @@ function callExternalResponse(statusCode: number, response: string) {
     }
 }
 
-export {region, tableName, craftTableName, debug, verify, callExternalResponse}
+export {region, tableName, craftTableName, craftGateTableName, debug, verify, callExternalResponse}

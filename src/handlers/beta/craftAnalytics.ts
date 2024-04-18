@@ -119,6 +119,10 @@ function batchGet(partitionKey: string) {
 
     //const filter = [1, 4, 9, 25, 64, 159, 441] // fibonacci ^2 -> 73.5 min
 
+    // 計測間隔15秒を単位とし、それぞれの訪問者が、そのN回目の時点まで滞在していた累計数を表示します。
+    // N : {1, 4, 9, 25, 64, 159, 441}
+    // →　これによって、入室から｛15秒後／1分後／2分15秒後／6分15秒後／16分後／39分45秒後／110分15秒後｝まで滞在していたユーザーの累計人数を知ることができます。
+
     return new BatchGetItemCommand({
         RequestItems: {
             [craftTableName]: {

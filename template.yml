@@ -10,9 +10,12 @@ Parameters:
   DdbTable:
     Type: String
     Default: PandaTools
-  CraftDdbTable:
+  DdbCraftTable:
     Type: String
     Default: CraftPandaTools
+  DdbCraftGateTable:
+    Type: String
+    Default: CraftGatePandaTools
   Salt:
     Type: String
     Default: SaltSaltSaltSaltSaltSaltSaltSaltSaltSaltSaltSaltSalt
@@ -41,7 +44,8 @@ Globals:
       Variables:
         DDB_REGION: !Ref DdbRegion
         DDB_TABLE: !Ref DdbTable
-        DDB_TABLE_CRAFT: !Ref CraftDdbTable
+        DDB_TABLE_CRAFT: !Ref DdbCraftTable
+        DDB_TABLE_CRAFT_GATE: !Ref DdbCraftGateTable
         SALT: !Ref Salt
         CIPHER_KEY: !Ref CipherKey
         CIPHER_IV: !Ref CipherIv
@@ -118,7 +122,7 @@ Resources:
   CraftDynamoDBTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: !Ref CraftDdbTable
+      TableName: !Ref DdbCraftTable
       KeySchema:
         - AttributeName: PartitionKey
           KeyType: HASH
@@ -129,6 +133,22 @@ Resources:
           AttributeType: S
         - AttributeName: SortKey
           AttributeType: N
+      BillingMode: PAY_PER_REQUEST
+
+  CraftGateDynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref DdbCraftGateTable
+      KeySchema:
+        - AttributeName: PartitionKey
+          KeyType: HASH
+        - AttributeName: SortKey
+          KeyType: RANGE
+      AttributeDefinitions:
+        - AttributeName: PartitionKey
+          AttributeType: S
+        - AttributeName: SortKey
+          AttributeType: S
       BillingMode: PAY_PER_REQUEST
 
   S3Bucket:
