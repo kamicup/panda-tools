@@ -55334,14 +55334,14 @@ function craftGate(event, data) {
                     if (!data[META_REPORT]) return [3 /*break*/, 2];
                     return [4 /*yield*/, processReport(data[META_REPORT])];
                 case 1: return [2 /*return*/, _a.sent()];
-                case 2: return [2 /*return*/, errorResponse()];
+                case 2: return [2 /*return*/, errorResponse(META_REPORT + ' undefined')];
             }
         });
     });
 }
 exports["default"] = craftGate;
-var errorResponse = function () {
-    return (0, env_1.callExternalResponse)(200, JSON.stringify({ result: false }));
+var errorResponse = function (message) {
+    return (0, env_1.callExternalResponse)(200, JSON.stringify({ result: false, message: message }));
 };
 function newClient() {
     return new client_dynamodb_1.DynamoDBClient({
@@ -55355,6 +55355,9 @@ function processReport(data) {
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
+                    if (env_1.debug) {
+                        console.info('data:', data);
+                    }
                     owner = data.owner;
                     group = data.group;
                     gate = data.gate;
@@ -55400,9 +55403,9 @@ function processReport(data) {
                     if (env_1.debug) {
                         console.info('getItemOutput:', getItemOutput);
                     }
+                    max = 0;
+                    count = 0;
                     if (getItemOutput.Item) {
-                        max = 0;
-                        count = 0;
                         for (itemKey in getItemOutput.Item) {
                             v = getItemOutput.Item[itemKey];
                             if (v.N) {
@@ -55412,12 +55415,11 @@ function processReport(data) {
                                 count = Number(v.N);
                             }
                         }
-                        return [2 /*return*/, (0, env_1.callExternalResponse)(200, JSON.stringify({
-                                count: count,
-                                max: max,
-                            }))];
                     }
-                    return [2 /*return*/, errorResponse()];
+                    return [2 /*return*/, (0, env_1.callExternalResponse)(200, JSON.stringify({
+                            count: count,
+                            max: max,
+                        }))];
             }
         });
     });

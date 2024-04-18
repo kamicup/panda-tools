@@ -16,11 +16,11 @@ export default async function craftGate(event: APIGatewayProxyEventV2, data: any
     if (data[META_REPORT]) {
         return await processReport(data[META_REPORT] as ReportData)
     }
-    return errorResponse()
+    return errorResponse(META_REPORT + ' undefined')
 }
 
-const errorResponse = () => {
-    return callExternalResponse(200, JSON.stringify({result: false}));
+const errorResponse = (message: string) => {
+    return callExternalResponse(200, JSON.stringify({result: false, message: message}));
 }
 
 function newClient() {
@@ -30,6 +30,9 @@ function newClient() {
 }
 
 async function processReport(data: ReportData) {
+    if (debug) {
+        console.info('data:', data)
+    }
     const owner = data.owner
     const group = data.group
     const gate = data.gate
@@ -75,9 +78,9 @@ async function processReport(data: ReportData) {
     if (debug) {
         console.info('getItemOutput:', getItemOutput)
     }
+    let max = 0
+    let count = 0
     if (getItemOutput.Item) {
-        let max = 0
-        let count = 0
         for (const itemKey in getItemOutput.Item) {
             const v = getItemOutput.Item[itemKey]
             if (v.N) {
@@ -87,12 +90,11 @@ async function processReport(data: ReportData) {
                 count = Number(v.N)
             }
         }
-        return callExternalResponse(200, JSON.stringify({
-            count: count,
-            max: max,
-        }))
     }
-    return errorResponse()
+    return callExternalResponse(200, JSON.stringify({
+        count: count,
+        max: max,
+    }))
 }
 
 function atomicCountUp(tableName: string, partitionKey: string, sortKey: string, attribute: string) {
