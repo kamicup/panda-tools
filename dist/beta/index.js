@@ -55570,6 +55570,7 @@ function processMilestone(data) {
                         }
                     }
                     return [2 /*return*/, (0, env_1.callExternalResponse)(200, JSON.stringify({
+                            result: true,
                             items: items,
                         }))];
             }
