@@ -16,6 +16,9 @@ Parameters:
   DdbCraftGateTable:
     Type: String
     Default: CraftGatePandaTools
+  DdbCraftMilestoneTable:
+    Type: String
+    Default: CraftMilestone
   Salt:
     Type: String
     Default: SaltSaltSaltSaltSaltSaltSaltSaltSaltSaltSaltSaltSalt
@@ -46,6 +49,7 @@ Globals:
         DDB_TABLE: !Ref DdbTable
         DDB_TABLE_CRAFT: !Ref DdbCraftTable
         DDB_TABLE_CRAFT_GATE: !Ref DdbCraftGateTable
+        DDB_TABLE_CRAFT_MILESTONE: !Ref DdbCraftMilestoneTable
         SALT: !Ref Salt
         CIPHER_KEY: !Ref CipherKey
         CIPHER_IV: !Ref CipherIv
@@ -78,6 +82,15 @@ Resources:
             ApiId: !Ref HttpApi
             Method: POST
             Path: /beta
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DdbTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DdbCraftTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DdbCraftGateTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DdbCraftMilestoneTable
       Environment:
         Variables:
           VERIFY_TOKEN: !Ref VerifyToken
@@ -139,6 +152,22 @@ Resources:
     Type: AWS::DynamoDB::Table
     Properties:
       TableName: !Ref DdbCraftGateTable
+      KeySchema:
+        - AttributeName: PartitionKey
+          KeyType: HASH
+        - AttributeName: SortKey
+          KeyType: RANGE
+      AttributeDefinitions:
+        - AttributeName: PartitionKey
+          AttributeType: S
+        - AttributeName: SortKey
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+
+  CraftMilestoneDynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref DdbCraftMilestoneTable
       KeySchema:
         - AttributeName: PartitionKey
           KeyType: HASH
