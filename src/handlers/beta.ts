@@ -6,6 +6,7 @@ import pandaToolsImageLoader from "./beta/pandaToolsImageLoader";
 import pandaToolsImagePanel from "./beta/pandaToolsImagePanel";
 import craftAnalytics from "./beta/craftAnalytics";
 import craftGate from "./beta/craftGate";
+import craftMilestone from "./beta/craftMilestone";
 
 export async function handler(event: APIGatewayProxyEventV2, context: Context, callback: APIGatewayProxyCallbackV2)
     : Promise<APIGatewayProxyResultV2> {
@@ -25,6 +26,9 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
     }
     if ('cmd' in data && data.cmd === 'craftGate') {
         return await craftGate(event, data)
+    }
+    if ('cmd' in data && data.cmd === 'craftMilestone') {
+        return await craftMilestone(event, data)
     }
     if ('cmd' in data && data.cmd === 'totp') {
         return pandaToolsTotp(event, data)
