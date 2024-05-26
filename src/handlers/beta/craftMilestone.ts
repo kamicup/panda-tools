@@ -85,6 +85,7 @@ async function processMilestone(data: MilestoneData) {
     }
 
     return callExternalResponse(200, JSON.stringify({
+        result: true,
         items: items,
     }))
 }
