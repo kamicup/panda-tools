@@ -1,6 +1,6 @@
 import {APIGatewayProxyEventV2} from "aws-lambda";
 import {callExternalResponse, craftGateTableName, debug, region} from "./lib/env";
-import {DynamoDBClient, GetItemCommand, UpdateItemCommand} from "@aws-sdk/client-dynamodb";
+import {DynamoDBClient, GetItemCommand, UpdateItemCommand, PutItemCommand} from "@aws-sdk/client-dynamodb";
 
 const META_REPORT = 'REPORT'
 
@@ -9,6 +9,19 @@ type ReportData = {
     group: string
     gate: string
     list?: string[]
+    position?: Position,
+    rotation?: Rotation,
+}
+type Position = {
+    x: number
+    y: number
+    z: number
+}
+type Rotation = {
+    x: number
+    y: number
+    z: number
+    w: number
 }
 
 export default async function craftGate(event: APIGatewayProxyEventV2, data: any) {
@@ -43,8 +56,8 @@ async function processReport(data: ReportData) {
 
     if (list) {
         for (const idfc of list) {
+            // ゲート＆個人単位のカウントアップ
             const sortKey = 'gate_' + gate + '_' + idfc
-
             const updateItemOutput = await client.send(
                 atomicCountUp(craftGateTableName, partitionKey, sortKey, 'Count')
             )
@@ -55,12 +68,24 @@ async function processReport(data: ReportData) {
             if (ownCount) {
                 const n = Number(ownCount)
                 if (n === 1) {
+                    // ゲート単位のカウントアップ（各個人の初回のみ）
                     const output = await client.send(
                         atomicCountUp(craftGateTableName, partitionKey, 'gates', gate)
                     )
                     if (debug) {
                         console.info('output:', output)
                     }
+                }
+            }
+
+            if (data.position && data.rotation) {
+                //個人単位の最終通過ゲート記録
+                const individualSortKey = 'individual_' + idfc
+                const individualOutput = await client.send(
+                    individualPut(craftGateTableName, partitionKey, individualSortKey, gate, data.position, data.rotation)
+                )
+                if (debug) {
+                    console.log('individualOutput:', individualOutput)
                 }
             }
         }
@@ -109,4 +134,26 @@ function atomicCountUp(tableName: string, partitionKey: string, sortKey: string,
         ExpressionAttributeNames: {'#count': attribute},
         ExpressionAttributeValues: {':q': {N: '1'}},
     })
+}
+
+function individualPut(tableName: string, partitionKey: string, sortKey: string, gate: string, position: Position, rotation: Rotation) {
+    return new PutItemCommand({
+        TableName: tableName,
+        Item: {
+            PartitionKey: {S: partitionKey},
+            SortKey: {S: sortKey},
+            Gate: {S: gate},
+            Position: {M: {
+                    X: {N: String(position.x)},
+                    Y: {N: String(position.y)},
+                    Z: {N: String(position.z)},
+                }},
+            Rotation: {M: {
+                    X: {N: String(rotation.x)},
+                    Y: {N: String(rotation.y)},
+                    Z: {N: String(rotation.z)},
+                    W: {N: String(rotation.w)},
+                }},
+        }
+    });
 }

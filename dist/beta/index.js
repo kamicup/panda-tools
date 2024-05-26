@@ -55356,7 +55356,7 @@ function newClient() {
 function processReport(data) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var owner, group, gate, list, client, partitionKey, _i, list_1, idfc, sortKey, updateItemOutput, ownCount, n, output, getItemOutput, max, count, itemKey, v;
+        var owner, group, gate, list, client, partitionKey, _i, list_1, idfc, sortKey, updateItemOutput, ownCount, n, output, individualSortKey, individualOutput, getItemOutput, max, count, itemKey, v;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
@@ -55369,11 +55369,11 @@ function processReport(data) {
                     list = data.list;
                     client = newClient();
                     partitionKey = owner + '_' + group;
-                    if (!list) return [3 /*break*/, 5];
+                    if (!list) return [3 /*break*/, 7];
                     _i = 0, list_1 = list;
                     _c.label = 1;
                 case 1:
-                    if (!(_i < list_1.length)) return [3 /*break*/, 5];
+                    if (!(_i < list_1.length)) return [3 /*break*/, 7];
                     idfc = list_1[_i];
                     sortKey = 'gate_' + gate + '_' + idfc;
                     return [4 /*yield*/, client.send(atomicCountUp(env_1.craftGateTableName, partitionKey, sortKey, 'Count'))];
@@ -55394,16 +55394,26 @@ function processReport(data) {
                     }
                     _c.label = 4;
                 case 4:
+                    if (!(data.position && data.rotation)) return [3 /*break*/, 6];
+                    individualSortKey = 'individual_' + idfc;
+                    return [4 /*yield*/, client.send(individualPut(env_1.craftGateTableName, partitionKey, individualSortKey, gate, data.position, data.rotation))];
+                case 5:
+                    individualOutput = _c.sent();
+                    if (env_1.debug) {
+                        console.log('individualOutput:', individualOutput);
+                    }
+                    _c.label = 6;
+                case 6:
                     _i++;
                     return [3 /*break*/, 1];
-                case 5: return [4 /*yield*/, client.send(new client_dynamodb_1.GetItemCommand({
+                case 7: return [4 /*yield*/, client.send(new client_dynamodb_1.GetItemCommand({
                         TableName: env_1.craftGateTableName,
                         Key: {
                             PartitionKey: { S: partitionKey },
                             SortKey: { S: 'gates' },
                         }
                     }))];
-                case 6:
+                case 8:
                     getItemOutput = _c.sent();
                     if (env_1.debug) {
                         console.info('getItemOutput:', getItemOutput);
@@ -55440,6 +55450,27 @@ function atomicCountUp(tableName, partitionKey, sortKey, attribute) {
         UpdateExpression: 'ADD #count :q',
         ExpressionAttributeNames: { '#count': attribute },
         ExpressionAttributeValues: { ':q': { N: '1' } },
+    });
+}
+function individualPut(tableName, partitionKey, sortKey, gate, position, rotation) {
+    return new client_dynamodb_1.PutItemCommand({
+        TableName: tableName,
+        Item: {
+            PartitionKey: { S: partitionKey },
+            SortKey: { S: sortKey },
+            Gate: { S: gate },
+            Position: { M: {
+                    X: { N: String(position.x) },
+                    Y: { N: String(position.y) },
+                    Z: { N: String(position.z) },
+                } },
+            Rotation: { M: {
+                    X: { N: String(rotation.x) },
+                    Y: { N: String(rotation.y) },
+                    Z: { N: String(rotation.z) },
+                    W: { N: String(rotation.w) },
+                } },
+        }
     });
 }
 
