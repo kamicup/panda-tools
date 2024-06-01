@@ -55727,6 +55727,7 @@ function processRespawn(data) {
                         };
                         return [2 /*return*/, (0, env_1.callExternalResponse)(200, JSON.stringify({
                                 result: true,
+                                player: player,
                                 position: pos,
                                 rotation: rot,
                             }))];
