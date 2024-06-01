@@ -79,6 +79,7 @@ async function processRespawn(data: RespawnData) {
         }
         return callExternalResponse(200, JSON.stringify({
             result: true,
+            player: player,
             position: pos,
             rotation: rot,
         }))
