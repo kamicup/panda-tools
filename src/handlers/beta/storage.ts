@@ -27,6 +27,8 @@ export default async function storage(event: APIGatewayProxyEventV2, data: any) 
         return await processGet(data[META_GET] as GetData)
     }
 
+    console.info('data:', data)
+
     return callExternalResponse(200, JSON.stringify({
         result: false,
     }))
@@ -38,25 +40,29 @@ function newClient() {
     })
 }
 
-async function processPut(data: PutData) {
-    const sendable = data.value
+async function processPut(putData: PutData) {
+    console.info('putData:', putData)
+
+    const sendable = putData.value
     const serialized = JSON.stringify(sendable)
 
     const _ = await newClient().send(new PutItemCommand({
         TableName: storageTableName,
         Item: {
-            Key: {S: data.key},
+            Key: {S: putData.key},
             Value: {S: serialized},
         },
     }))
     return callExternalResponse(200, JSON.stringify({result: true}))
 }
 
-async function processGet(data: GetData) {
+async function processGet(getData: GetData) {
+    console.info('getData:', getData)
+
     const output = await newClient().send(new GetItemCommand({
         TableName: storageTableName,
         Key: {
-            Key: {S: data.key},
+            Key: {S: getData.key},
         },
     }))
     if (output.Item && output.Item.Value && output.Item.Value.S) {
@@ -65,7 +71,7 @@ async function processGet(data: GetData) {
 
         return callExternalResponse(200, JSON.stringify({
             result: true,
-            key: data.key,
+            key: getData.key,
             value: sendable,
         }))
     }
