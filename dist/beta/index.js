@@ -56081,9 +56081,11 @@ function storage(event, data) {
                     if (!data[META_GET]) return [3 /*break*/, 4];
                     return [4 /*yield*/, processGet(data[META_GET])];
                 case 3: return [2 /*return*/, _a.sent()];
-                case 4: return [2 /*return*/, (0, env_1.callExternalResponse)(200, JSON.stringify({
-                        result: false,
-                    }))];
+                case 4:
+                    console.info('data:', data);
+                    return [2 /*return*/, (0, env_1.callExternalResponse)(200, JSON.stringify({
+                            result: false,
+                        }))];
             }
         });
     });
@@ -56094,18 +56096,22 @@ function newClient() {
         region: env_1.region,
     });
 }
-function processPut(data) {
+function processPut(putData) {
     return __awaiter(this, void 0, void 0, function () {
-        var _;
+        var sendable, serialized, _;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, newClient().send(new client_dynamodb_1.PutItemCommand({
-                        TableName: env_1.storageTableName,
-                        Item: {
-                            Key: { S: data.key },
-                            Value: { S: data.value },
-                        },
-                    }))];
+                case 0:
+                    console.info('putData:', putData);
+                    sendable = putData.value;
+                    serialized = JSON.stringify(sendable);
+                    return [4 /*yield*/, newClient().send(new client_dynamodb_1.PutItemCommand({
+                            TableName: env_1.storageTableName,
+                            Item: {
+                                Key: { S: putData.key },
+                                Value: { S: serialized },
+                            },
+                        }))];
                 case 1:
                     _ = _a.sent();
                     return [2 /*return*/, (0, env_1.callExternalResponse)(200, JSON.stringify({ result: true }))];
@@ -56113,25 +56119,28 @@ function processPut(data) {
         });
     });
 }
-function processGet(data) {
+function processGet(getData) {
     return __awaiter(this, void 0, void 0, function () {
-        var output, value;
+        var output, serialized, sendable;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, newClient().send(new client_dynamodb_1.GetItemCommand({
-                        TableName: env_1.storageTableName,
-                        Key: {
-                            Key: { S: data.key },
-                        },
-                    }))];
+                case 0:
+                    console.info('getData:', getData);
+                    return [4 /*yield*/, newClient().send(new client_dynamodb_1.GetItemCommand({
+                            TableName: env_1.storageTableName,
+                            Key: {
+                                Key: { S: getData.key },
+                            },
+                        }))];
                 case 1:
                     output = _a.sent();
                     if (output.Item && output.Item.Value && output.Item.Value.S) {
-                        value = output.Item.Value.S;
+                        serialized = output.Item.Value.S;
+                        sendable = JSON.parse(serialized);
                         return [2 /*return*/, (0, env_1.callExternalResponse)(200, JSON.stringify({
                                 result: true,
-                                key: data.key,
-                                value: value,
+                                key: getData.key,
+                                value: sendable,
                             }))];
                     }
                     return [2 /*return*/, (0, env_1.callExternalResponse)(200, JSON.stringify({ result: false }))];
