@@ -47,6 +47,7 @@ Globals:
       Variables:
         DDB_REGION: !Ref DdbRegion
         DDB_TABLE: !Ref DdbTable
+        DDB_TABLE_STORAGE: !Ref DdbStorageTable
         DDB_TABLE_CRAFT: !Ref DdbCraftTable
         DDB_TABLE_CRAFT_GATE: !Ref DdbCraftGateTable
         DDB_TABLE_CRAFT_MILESTONE: !Ref DdbCraftMilestoneTable
@@ -85,6 +86,8 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref DdbTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DdbStorageTable
         - DynamoDBCrudPolicy:
             TableName: !Ref DdbCraftTable
         - DynamoDBCrudPolicy:
@@ -129,6 +132,18 @@ Resources:
         - AttributeName: PartitionKey
           AttributeType: S
         - AttributeName: SortKey
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+
+  StorageDynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref DdbStorageTable
+      KeySchema:
+        - AttributeName: Key
+          KeyType: HASH
+      AttributeDefinitions:
+        - AttributeName: Key
           AttributeType: S
       BillingMode: PAY_PER_REQUEST
 
