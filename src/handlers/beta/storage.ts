@@ -11,7 +11,7 @@ const META_GET = 'GET'
 
 type PutData = {
     key: string
-    value: string
+    value: any
 }
 type GetData = {
     key: string
@@ -39,11 +39,14 @@ function newClient() {
 }
 
 async function processPut(data: PutData) {
+    const sendable = data.value
+    const serialized = JSON.stringify(sendable)
+
     const _ = await newClient().send(new PutItemCommand({
         TableName: storageTableName,
         Item: {
             Key: {S: data.key},
-            Value: {S: data.value},
+            Value: {S: serialized},
         },
     }))
     return callExternalResponse(200, JSON.stringify({result: true}))
@@ -57,11 +60,13 @@ async function processGet(data: GetData) {
         },
     }))
     if (output.Item && output.Item.Value && output.Item.Value.S) {
-        const value = output.Item.Value.S
+        const serialized = output.Item.Value.S
+        const sendable = JSON.parse(serialized)
+
         return callExternalResponse(200, JSON.stringify({
             result: true,
             key: data.key,
-            value: value,
+            value: sendable,
         }))
     }
     return callExternalResponse(200, JSON.stringify({result: false}))
