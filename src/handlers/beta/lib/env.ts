@@ -1,6 +1,7 @@
 // 環境変数
 const region = process.env.DDB_REGION
 const tableName = process.env.DDB_TABLE!
+const storageTableName = process.env.DDB_TABLE_STORAGE!
 const craftTableName = process.env.DDB_TABLE_CRAFT!
 const craftGateTableName = process.env.DDB_TABLE_CRAFT_GATE!
 const craftMilestoneTableName = process.env.DDB_TABLE_CRAFT_MILESTONE!
@@ -17,4 +18,4 @@ function callExternalResponse(statusCode: number, response: string) {
     }
 }
 
-export {region, tableName, craftTableName, craftGateTableName, craftMilestoneTableName, debug, verify, callExternalResponse}
+export {region, tableName, storageTableName, craftTableName, craftGateTableName, craftMilestoneTableName, debug, verify, callExternalResponse}

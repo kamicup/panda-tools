@@ -7,6 +7,7 @@ import craftAnalytics from "./beta/craftAnalytics";
 import craftGate from "./beta/craftGate";
 import craftMilestone from "./beta/craftMilestone";
 import craftRespawn from "./beta/craftRespawn";
+import storage from "./beta/storage";
 
 export async function handler(event: APIGatewayProxyEventV2, context: Context, callback: APIGatewayProxyCallbackV2)
     : Promise<APIGatewayProxyResultV2> {
@@ -21,6 +22,9 @@ export async function handler(event: APIGatewayProxyEventV2, context: Context, c
     }
     const data = JSON.parse(body.request)
 
+    if ('cmd' in data && data.cmd === 'storage') {
+        return await storage(event, data);
+    }
     if ('cmd' in data && data.cmd === 'craftAnalytics') {
         return await craftAnalytics(event, data)
     }
